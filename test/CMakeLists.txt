@@ -14,4 +14,6 @@ add_library(allok8or-test OBJECT main.cpp)
 add_executable(align-test align-test.cpp $<TARGET_OBJECTS:allok8or-test>)
 add_test(NAME align-test COMMAND align-test)
 
-
+add_executable(page_allocator-test page_allocator-test.cpp $<TARGET_OBJECTS:allok8or-test>)
+add_test(NAME page_allocator-test COMMAND page_allocator-test)
+target_link_libraries(page_allocator-test allok8or-core)
