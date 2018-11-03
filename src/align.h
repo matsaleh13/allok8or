@@ -13,6 +13,7 @@ namespace align
  * @param alignment Alignment to use to get the desired address.
  * @return Pointer to the desired address (aligned). 
  */
+inline
 constexpr void* get_prev_aligned_address( void* address, size_t alignment )
 {
   return (void*) ( static_cast<size_t>( ~( alignment - 1 ) ) & ( reinterpret_cast<size_t>( address ) ) );
@@ -25,6 +26,7 @@ constexpr void* get_prev_aligned_address( void* address, size_t alignment )
  * @param alignment Alignment to use to get the desired address.
  * @return Pointer to the desired address (aligned). 
  */
+inline
 constexpr void* get_next_aligned_address( void* address, size_t alignment )
 {
   return (void*) ( static_cast<size_t>( ~( alignment - 1 ) ) & ( reinterpret_cast<size_t>( address ) + static_cast<size_t>( alignment - 1 ) ) );
@@ -41,10 +43,14 @@ constexpr void* get_next_aligned_address( void* address, size_t alignment )
  * @param alignment Alignment to use to get the desired size.
  * @return Aligned size required to contain the data.
  */
+inline
 constexpr size_t get_aligned_size(size_t size, size_t alignment)
 {
   return alignment ? (size + alignment - ( size % alignment ) % alignment) : size;
 }
+
+
+
 
 
 } // namespace align
