@@ -21,4 +21,10 @@
     ```
 - All tests pass. Committed.
 
+## 2018-11-06
 
+- Got project to build on OS X with clang:
+  - Minor changes to compiler settings to back off pedantic/extra warnings in "strict" mode.
+  - Removed invalid uses of `constexpr` that clang caught but MSVS did not.
+  - Platform-specific implmementations of aligned malloc.
+  - Other minor platform-specific tweaks.
