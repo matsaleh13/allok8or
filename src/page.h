@@ -75,7 +75,7 @@ int PageAllocator::num_free_pages()
 inline
 bool PageAllocator::verify_free_pages()
 {
-  return ( m_free_pages && ( m_num_free_pages > 0 ) || ( !m_free_pages && m_num_free_pages == 0 ) );
+  return ( (m_free_pages && ( m_num_free_pages > 0 )) || ( !m_free_pages && m_num_free_pages == 0 ) );
 }
 
 

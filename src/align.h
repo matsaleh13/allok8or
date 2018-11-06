@@ -1,5 +1,6 @@
 #pragma once 
 
+#include <stddef.h>
 
 namespace allok8or
 {
@@ -14,7 +15,7 @@ namespace align
  * @return Pointer to the desired address (aligned). 
  */
 inline
-constexpr void* get_prev_aligned_address( void* address, size_t alignment )
+void* get_prev_aligned_address( void* address, size_t alignment )
 {
   return (void*) ( static_cast<size_t>( ~( alignment - 1 ) ) & ( reinterpret_cast<size_t>( address ) ) );
 }
@@ -27,7 +28,7 @@ constexpr void* get_prev_aligned_address( void* address, size_t alignment )
  * @return Pointer to the desired address (aligned). 
  */
 inline
-constexpr void* get_next_aligned_address( void* address, size_t alignment )
+void* get_next_aligned_address( void* address, size_t alignment )
 {
   return (void*) ( static_cast<size_t>( ~( alignment - 1 ) ) & ( reinterpret_cast<size_t>( address ) + static_cast<size_t>( alignment - 1 ) ) );
 }

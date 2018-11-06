@@ -18,7 +18,8 @@ macro(warnings_strict)
         add_compile_options(/W4 /WX)
     else()
         # lots of warnings and all warnings as errors
-        add_compile_options(-Wall -Wextra -pedantic -Werror)
+        # add_compile_options(-Wall -Wextra -pedantic -Werror)
+        add_compile_options(-Wall -Werror)
     endif()
 endmacro(warnings_strict)
 

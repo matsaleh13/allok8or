@@ -1,10 +1,12 @@
 /**
  * @file memory.h
- * @brief 
+ * @brief Cross-platform memory-related functions.
  * 
  */
 
 #pragma once
+
+#include <stddef.h>
 
 namespace allok8or {
 
