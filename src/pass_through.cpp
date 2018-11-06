@@ -2,10 +2,9 @@
 #include "pass_through.h"
 
 // Project headers
+#include "memory.h"
 
 // Library headers
-#include <memory>
-#include <stdlib.h>   // C11
 
 namespace allok8or {
 
@@ -14,7 +13,7 @@ namespace allok8or {
  */
 void* PassThroughAllocator::allocate(
     size_t bytes, size_t alignment /*= alignof( std::max_align_t ) */) {
-  auto memory = aligned_alloc(alignment, bytes);
+  auto memory = memory::aligned_malloc(bytes, alignment);
 
   return memory;
 }
@@ -22,6 +21,8 @@ void* PassThroughAllocator::allocate(
 /**
  * Returns memory to the system heap.
  */
-void PassThroughAllocator::deallocate(void* memory) { std::free(memory); }
+void PassThroughAllocator::deallocate(void* memory) {
+  memory::aligned_free(memory);
+}
 
 } // namespace allok8or

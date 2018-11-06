@@ -17,3 +17,7 @@ add_test(NAME align-test COMMAND align-test)
 add_executable(page_allocator-test page_allocator-test.cpp $<TARGET_OBJECTS:allok8or-test>)
 add_test(NAME page_allocator-test COMMAND page_allocator-test)
 target_link_libraries(page_allocator-test allok8or-core)
+
+add_executable(pass_through_allocator-test pass_through_allocator-test.cpp $<TARGET_OBJECTS:allok8or-test>)
+add_test(NAME pass_through_allocator-test COMMAND pass_through_allocator-test)
+target_link_libraries(pass_through_allocator-test allok8or-core)

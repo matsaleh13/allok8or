@@ -1,8 +1,6 @@
 #include "doctest.h"
 #include "pass_through.h"
 
-#include <memory>
-
 
 TEST_CASE( "allocate" )
 {
