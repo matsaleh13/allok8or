@@ -1,3 +1,7 @@
+/**
+ * @file pass_through.h
+ * @brief Header for a basic allocator that simply defers all allcations to the system allocator.
+ */
 #pragma once
 
 #include <cstddef>

@@ -18,7 +18,7 @@ namespace memory {
 void* aligned_malloc(size_t size, size_t align) {
   void* result;
 #ifdef _MSC_VER
-  return _aligned_malloc(size, align);
+  result = _aligned_malloc(size, align);
 #else
   if (posix_memalign(&result, align, size)) {
     result = 0;
