@@ -28,3 +28,10 @@
   - Removed invalid uses of `constexpr` that clang caught but MSVS did not.
   - Platform-specific implmementations of aligned malloc.
   - Other minor platform-specific tweaks.
+- Back on Windows, got it all building correctly again (not much more to do):
+  - However, the VS Code intellisense thingy reported red squigglies in `pass_through.h` under `namespace allok8or`, with the message:
+    ```c++
+    expected ';' after top level declarator
+    ```
+  - I recalled that I'd updated my VS Code extensions on OS X to add the vscode-clangd extension. Some googles told me this error was related to that, so I disabled it on Windows.
+  - That got rid of the squigglies. Is clang not playing nicely with MSVS on Windows?
