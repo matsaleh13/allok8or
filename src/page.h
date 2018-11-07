@@ -18,7 +18,7 @@ struct PageHeader;
 class PageAllocator
 {
 public:
-  PageAllocator( size_t pPageSize, size_t pAlignment = alignof( std::max_align_t ) );
+  PageAllocator( size_t page_size, size_t alignment = alignof( std::max_align_t ) );
   ~PageAllocator();
 
   PageAllocator() = delete;
