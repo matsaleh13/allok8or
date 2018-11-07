@@ -35,3 +35,9 @@
     ```
   - I recalled that I'd updated my VS Code extensions on OS X to add the vscode-clangd extension. Some googles told me this error was related to that, so I disabled it on Windows.
   - That got rid of the squigglies. Is clang not playing nicely with MSVS on Windows?
+
+## 2018-11-07
+
+- Implemented DiagnosticAllocator (no tests yet).
+- Implemented AllocationTracker and related code (no tests yet).
+- Compiles on Windows, but templates not expanded I'm sure. 
