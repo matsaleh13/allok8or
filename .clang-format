@@ -5,6 +5,9 @@ Language: Cpp
 # Force pointers to the type for C++.
 DerivePointerAlignment: false
 PointerAlignment: Left
+ConstructorInitializerAllOnOneLineOrOnePerLine: true    # I can't stand arbitrary line wrapping
+BinPackArguments: false
+BinPackParameters: false
 
 # Template line breaking
 AlwaysBreakTemplateDeclarations: true

@@ -39,7 +39,8 @@ const BlockSignature BlockHeader::BLOCK_SIGNATURE;
  * @param line Line number of the caller details.
  * @return BlockHeader* Pointer to the full memory block.
  */
-BlockHeader* BlockHeader::create(void* block_start, size_t user_data_size,
+BlockHeader* BlockHeader::create(void* block_start,
+                                 size_t user_data_size,
                                  size_t user_data_alignment,
                                  const char* type_name /*= nullptr*/,
                                  const char* file_name /*= nullptr*/,
@@ -65,7 +66,7 @@ BlockHeader* BlockHeader::create(void* block_start, size_t user_data_size,
  * AllocationTracker ctor
  */
 AllocationTracker::AllocationTracker()
-    : m_head(nullptr), m_tail(nullptr), m_num_blocks(0) {}
+    : m_head(nullptr), m_tail(nullptr), m_num_blocks(0), m_num_bytes(0) {}
 
 /**
  * AllocationTracker dtor
@@ -76,13 +77,14 @@ AllocationTracker::~AllocationTracker() {
   if (m_num_blocks || m_head || m_tail) {
     LOG_ERROR(L"Detected memory leaks when deleting AllocationTracker "
               L"[%d]; leaking [%d] bytes.",
-              m_num_blocks, m_num_bytes);
+              m_num_blocks,
+              m_num_bytes);
   }
 }
 
 /**
  * @brief Adds a memory block (with header) to the internal list.
- * 
+ *
  * @param block Pointer to the block to add.
  * @return true when block added.
  * @return false when failed to add block.
@@ -116,7 +118,7 @@ bool AllocationTracker::add_block(BlockHeader* block) {
 
 /**
  * @brief Removes a memory block (with header) from the internal list.
- * 
+ *
  * @param block Pointer to the block to remove.
  * @return true when block removed.
  * @return false when failed to remove block.
@@ -171,7 +173,7 @@ bool AllocationTracker::remove_block(BlockHeader* block) {
 
 /**
  * @brief Logs blocks with no formatting or summary.
- * 
+ *
  */
 void AllocationTracker::log_raw_blocks() {
   auto block = m_head;
@@ -186,7 +188,7 @@ void AllocationTracker::log_raw_blocks() {
 
 /**
  * @brief Summarizes net allocations by type and/or call site.
- * 
+ *
  */
 void AllocationTracker::log_block_summary() {
   // TODO

@@ -41,3 +41,8 @@
 - Implemented DiagnosticAllocator (no tests yet).
 - Implemented AllocationTracker and related code (no tests yet).
 - Compiles on Windows, but templates not expanded I'm sure. 
+
+## 2018-11-08
+
+- Fixed clang build errors on OSX.
+- 
