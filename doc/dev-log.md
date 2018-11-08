@@ -44,5 +44,15 @@
 
 ## 2018-11-08
 
-- Fixed clang build errors on OSX.
-- 
+- Fixed clang build errors of AllocationTracker on OSX.
+- Implemented AllocationTracker tests on Windows.
+- Iterated on test/debug/fix for a while.
+- All tests pass on Windows.
+- Committed, pushed up, and pulled onto OSX.
+- Build failures, damn. Clang and MSVS are *so* different, feh.
+  ```cmake
+  [build] In file included from /Users/matsaleh/Dev/github/allok8or/test/diagnostic_util-test.cpp:8:
+  [build] /Users/matsaleh/Dev/github/allok8or/src/diagnostic_util.h:32:27: error: array is too large (18446744073709551577 elements)
+  [build]     static char type_name[size] = {};
+  [build]                           ^~~~
+  ```
