@@ -12,6 +12,7 @@
 #include "logging.h"
 
 // Library headers
+#include <new>
 
 namespace allok8or {
 namespace diagnostic {

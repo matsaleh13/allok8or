@@ -18,42 +18,6 @@ namespace allok8or {
 namespace diagnostic {
 
 /**
- * Credit for this technique of "stamping" allocated memory with the caller's
- * details goes to: http://www.almostinfinite.com/memtrack.html, Copyright (c)
- * 2002, 2008 Curtis Bartley.
- */
-
-// Forward
-class CallerDetails;
-
-/**
- *
- */
-
-/**
- * @brief Overload of operator* that merges caller details with the object
- * allocated.
- *
- * @tparam T Data type of the object to be "stamped".
- * @param caller_details A CallerDetails containing the data to be used to
- * "stamp" the object.
- * @param user_data Pointer to the object to be "stamped".
- * @return T* Pointer to the input object.
- */
-template <typename T>
-constexpr T* operator*(const CallerDetails& caller_details, T* user_data) {
-  BlockHeader::set_caller_details<T>(caller_details, user_data);
-  return user_data;
-}
-
-/**
- * Get the type name at compile time without RTTI using a cool technique from
- * here:
- *
- *
- */
-
-/**
  * @brief Get the type name at compile time without RTTI.
  *
  * Credit for this cool hack:
@@ -134,9 +98,9 @@ struct BlockSignature {
  */
 class BlockHeader {
   // Private ctor for use only by the factory (below).
-  constexpr BlockHeader(size_t user_data_size, size_t user_data_alignment,
-                        const char* file_name = nullptr, int line = 0,
-                        const char* type_name = nullptr);
+  BlockHeader(size_t user_data_size, size_t user_data_alignment,
+              const char* file_name = nullptr, int line = 0,
+              const char* type_name = nullptr);
 
 public:
   static BlockHeader* create(void* block_start, size_t user_data_size,
@@ -164,7 +128,7 @@ public:
   // Utility methods
   template <size_t N>
   constexpr void get_block_info_string(char (&buffer)[N]) const;
-  constexpr static BlockHeader* get_header(const void* memory);
+  static BlockHeader* get_header(const void* memory);
   template <typename T>
   constexpr static void set_caller_details(const CallerDetails& caller_details,
                                            const T* user_data);
@@ -196,14 +160,12 @@ private:
 /**
  * Constructor
  */
-constexpr BlockHeader::BlockHeader(size_t user_data_size,
-                                   size_t user_data_alignment,
-                                   const char* file_name /*= nullptr*/,
-                                   int line /*= 0*/,
-                                   const char* type_name /*= nullptr */)
-    : m_next(nullptr), m_prev(nullptr), m_file_name(file_name), m_line(line),
-      m_type_name(type_name), m_user_data_size(user_data_size),
-      m_user_data_alignment(user_data_alignment),
+BlockHeader::BlockHeader(size_t user_data_size, size_t user_data_alignment,
+                         const char* file_name /*= nullptr*/, int line /*= 0*/,
+                         const char* type_name /*= nullptr */)
+    : m_next(nullptr), m_prev(nullptr), m_user_data_size(user_data_size),
+      m_user_data_alignment(user_data_alignment), m_file_name(file_name),
+      m_line(line), m_type_name(type_name),
       m_user_data(reinterpret_cast<void*>(
           reinterpret_cast<uintptr_t>(this) +
           align::get_aligned_size(sizeof(BlockHeader), alignof(BlockHeader)))) {
@@ -214,8 +176,8 @@ constexpr BlockHeader::BlockHeader(size_t user_data_size,
  */
 template <size_t N>
 constexpr void BlockHeader::get_block_info_string(char (&buffer)[N]) const {
-  snprintf(buffer, N, "type [%s] file [%s] line [%d] size [%llu]", type_name(),
-          m_file_name, m_line, m_user_data_size);
+  snprintf(buffer, N, "type [%s] file [%s] line [%d] size [%d]", type_name(),
+           m_file_name, m_line, static_cast<int>(m_user_data_size)); // TODO: size_t or not?
 }
 
 /**
@@ -231,7 +193,7 @@ inline constexpr bool BlockHeader::is_valid() const {
  * @param Pointer to user memory.
  * @returns Pointer to the BlockHeader for the given user memory.
  */
-inline constexpr BlockHeader* BlockHeader::get_header(const void* user_data) {
+inline BlockHeader* BlockHeader::get_header(const void* user_data) {
   return reinterpret_cast<BlockHeader*>(
       reinterpret_cast<uintptr_t>(user_data) -
       align::get_aligned_size(sizeof(BlockHeader), alignof(BlockHeader)));
@@ -271,6 +233,35 @@ inline void BlockHeader::set_caller_details(const char* file_name, int line,
   m_file_name = file_name;
   m_line = line;
   m_type_name = type_name;
+}
+
+/**
+ * Credit for this technique of "stamping" allocated memory with the caller's
+ * details goes to: http://www.almostinfinite.com/memtrack.html, Copyright (c)
+ * 2002, 2008 Curtis Bartley.
+ */
+
+// Forward
+class CallerDetails;
+
+/**
+ *
+ */
+
+/**
+ * @brief Overload of operator* that merges caller details with the object
+ * allocated.
+ *
+ * @tparam T Data type of the object to be "stamped".
+ * @param caller_details A CallerDetails containing the data to be used to
+ * "stamp" the object.
+ * @param user_data Pointer to the object to be "stamped".
+ * @return T* Pointer to the input object.
+ */
+template <typename T>
+constexpr T* operator*(const CallerDetails& caller_details, T* user_data) {
+  BlockHeader::set_caller_details<T>(caller_details, user_data);
+  return user_data;
 }
 
 /**
