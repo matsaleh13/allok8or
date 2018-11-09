@@ -4,6 +4,7 @@ project(allok8or VERSION 0.1.0)
 # Macros
 include("./macros.cmake")
 
+debug_platform_info()
 debug_boilerplate()
 
 # Compiler settings.

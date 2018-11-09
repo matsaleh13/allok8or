@@ -1,3 +1,7 @@
+macro(debug_message msg)
+    set(DBG_LABEL "DBG (${PROJECT_NAME})")
+    message ("${DBG_LABEL}: ${msg}")
+endmacro(debug_message)
 
 macro(debug_boilerplate)
     debug_message("CMAKE_SOURCE_DIR: ${CMAKE_SOURCE_DIR}")
@@ -6,10 +10,10 @@ macro(debug_boilerplate)
     debug_message("PROJECT_BINARY_DIR: ${PROJECT_BINARY_DIR}")
 endmacro(debug_boilerplate)
 
-macro(debug_message msg)
-    set(DBG_LABEL "DBG (${PROJECT_NAME})")
-    message ("${DBG_LABEL}: ${msg}")
-endmacro(debug_message)
+macro(debug_platform_info)
+    debug_message("CMAKE_C_COMPILER_ID: ${CMAKE_C_COMPILER_ID}")
+    debug_message("CMAKE_CXX_COMPILER_ID: ${CMAKE_CXX_COMPILER_ID}")
+endmacro(debug_platform_info)
 
 macro(warnings_strict)
     debug_message("Enabling strict compiler warnings.")
