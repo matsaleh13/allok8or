@@ -50,9 +50,34 @@
 - All tests pass on Windows.
 - Committed, pushed up, and pulled onto OSX.
 - Build failures, damn. Clang and MSVS are *so* different, feh.
+
   ```cmake
   [build] In file included from /Users/matsaleh/Dev/github/allok8or/test/diagnostic_util-test.cpp:8:
   [build] /Users/matsaleh/Dev/github/allok8or/src/diagnostic_util.h:32:27: error: array is too large (18446744073709551577 elements)
   [build]     static char type_name[size] = {};
   [build]                           ^~~~
   ```
+
+## 2018-11-09
+
+- Fixed clang build error from yesterday:
+  - In spite of web info to the contrary, it seems `__FUNCTIION__` isn't defined by clang (on OSX High Sierra, on my machine, anyway).
+  - The oversized value for array size was a negative value assigned to a size_t and overflowing (a reminder about the dangers of unsigned int).
+  - Fixed by defining custom macro `ALK8_PRETTY_FUNCTION` and set to either `__FUNCTION__` or `__PRETTY_FUNCTION__` based on compiler defines.
+- Another clang error, but another case of implementation-specific include depenencies:
+
+  ```cmake
+    build] /Users/matsaleh/Dev/github/allok8or/src/diagnostic_util.h:37:5: error: call to function 'memcpy' that is neither visible in the template definition nor found by argument-dependent lookup
+    [build]     memcpy(type_name, ALK8_PRETTY_FUNCTION + FRONT_SIZE, type_name_size - 1u);
+    [build]     ^
+  ```
+
+  - Needed `#include <cstring>`, which must have been "inherited" via another header on MSVS, but not clang.
+  - Another reminder of the virtue of "include what you use" (if only I knew where/when).
+  - Is this an argument for a common include file (possibly precompiled header)?
+
+- Looks like __PRETTY_FUNCTION__ has *two* occurrences of the type name in it:
+  - That changes the entire approach. 
+  - Now, instead of having a constant prefix and suffix length, we have no way to know how far to walk the string to find the end of the token we're looking for.
+  - That means we can't use a constexpr method. Boo.
+  - Gonna let this stew overnight.
