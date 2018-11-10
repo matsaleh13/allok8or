@@ -81,3 +81,9 @@
   - Now, instead of having a constant prefix and suffix length, we have no way to know how far to walk the string to find the end of the token we're looking for.
   - That means we can't use a constexpr method. Boo.
   - Gonna let this stew overnight.
+
+## 2018-11-10
+
+- Finally got TypeNameHelper working on Clang:
+  - Preserved constexpr by adding a method that takes the __*FUNCTION__ string and a `start` and `end` pointer as OUT params. That way, no need to declare local vars.
+  - Refactored to minimize the amount of compiler-specific code.
