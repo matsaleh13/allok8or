@@ -12,3 +12,13 @@
 #else
   std::static_assert(false);  // Unsupported compiler
 #endif
+
+
+// "Pretty Function" macro
+#if defined(_MSV_VER)
+  #define ALK8_PRETTY_FUNCTION __FUNCTION__
+#elif defined (__clang__)
+  #define ALK8_PRETTY_FUNCTION __PRETTY_FUNCTION__
+#elif defined(__GNUC__)
+  #define ALK8_PRETTY_FUNCTION __PRETTY_FUNCTION__
+#endif
