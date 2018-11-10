@@ -40,16 +40,13 @@ struct AllocationParams {
  * @tparam T An instantiation of AllocationParams<size_n, alignment_n>
  */
 template <typename T>
-class AllocationTrackerFixture {
-public:
-  const char* type_name = "class TestType<int>";
+struct AllocationTrackerFixture {
+  static const char* type_name;
 
-  static const size_t user_data_size = T::size;
-  static const size_t user_data_alignment = T::alignment;
-  static const size_t aligned_user_data_size =
-      align::get_aligned_size(user_data_size, user_data_alignment);
-  static const size_t aligned_header_size = align::get_aligned_size(
-      sizeof(diagnostic::BlockHeader), alignof(diagnostic::BlockHeader));
+  static const size_t user_data_size;
+  static const size_t user_data_alignment;
+  static const size_t aligned_user_data_size;
+  static const size_t aligned_header_size;
 
   typedef std::vector<byte_t*> BufferList;
   BufferList m_buffers;
@@ -70,34 +67,51 @@ public:
   }
 };
 
-TEST_CASE_TEMPLATE_DEFINE("block_header", T, test_id) {
-  AllocationTrackerFixture<T> fixture;
+template <typename T>
+const char* AllocationTrackerFixture<T>::type_name = "class TestType<int>";
+template <typename T>
+const size_t AllocationTrackerFixture<T>::user_data_size = T::size;
+template <typename T>
+const size_t AllocationTrackerFixture<T>::user_data_alignment =
+    T::alignment;
+template <typename T>
+const size_t AllocationTrackerFixture<T>::aligned_user_data_size =
+    align::get_aligned_size(user_data_size, user_data_alignment);
+template <typename T>
+const size_t AllocationTrackerFixture<T>::aligned_header_size =
+    align::get_aligned_size(sizeof(diagnostic::BlockHeader),
+                            alignof(diagnostic::BlockHeader));
 
-  auto memory = fixture.create_buffer(fixture.aligned_user_data_size +
-                                      fixture.aligned_header_size);
+TEST_CASE_TEMPLATE_DEFINE("block_header", T, test_id) {
+  using FixtureT = AllocationTrackerFixture<T>;
+
+  FixtureT fixture;
+
+  auto memory = fixture.create_buffer(FixtureT::aligned_user_data_size +
+                                      FixtureT::aligned_header_size);
   void* user_data_start =
-      reinterpret_cast<void*>(memory + fixture.aligned_header_size);
+      reinterpret_cast<void*>(memory + FixtureT::aligned_header_size);
 
   auto header = diagnostic::BlockHeader::create(memory,
-                                                fixture.user_data_size,
-                                                fixture.user_data_alignment,
-                                                fixture.type_name);
+                                                FixtureT::user_data_size,
+                                                FixtureT::user_data_alignment,
+                                                FixtureT::type_name);
 
   // Linked list
   CHECK_EQ(nullptr, header->next());
   CHECK_EQ(nullptr, header->prev());
 
   // Accessors
-  CHECK_EQ(fixture.type_name, header->type_name());
-  CHECK_EQ(fixture.user_data_size, header->user_data_size());
-  CHECK_EQ(fixture.user_data_alignment, header->user_data_alignment());
+  CHECK_EQ(FixtureT::type_name, header->type_name());
+  CHECK_EQ(FixtureT::user_data_size, header->user_data_size());
+  CHECK_EQ(FixtureT::user_data_alignment, header->user_data_alignment());
 
   // Addresses
   CHECK_EQ(reinterpret_cast<void*>(memory), reinterpret_cast<void*>(header));
   CHECK_EQ(reinterpret_cast<void*>(reinterpret_cast<byte_t*>(header) +
-                                   fixture.aligned_header_size),
+                                   FixtureT::aligned_header_size),
            header->user_data());
-  CHECK_EQ(reinterpret_cast<void*>(memory + fixture.aligned_header_size),
+  CHECK_EQ(reinterpret_cast<void*>(memory + FixtureT::aligned_header_size),
            header->user_data());
   CHECK_EQ(user_data_start, header->user_data());
   CHECK_EQ(header, diagnostic::BlockHeader::get_header(user_data_start));
@@ -306,7 +320,7 @@ TEST_CASE_TEMPLATE_DEFINE("tracker", T, tracker_test_id) {
 
     // Remove first block (last one added)
     auto current_num_blocks = num_blocks - 1;
-    auto header_to_remove = headers[headers.size() - 1]; 
+    auto header_to_remove = headers[headers.size() - 1];
     tracker.remove_block(header_to_remove);
 
     CHECK_EQ(nullptr, header_to_remove->next());
@@ -359,7 +373,7 @@ TEST_CASE_TEMPLATE_DEFINE("tracker", T, tracker_test_id) {
 
     // Remove last block (first one added)
     auto current_num_blocks = num_blocks - 1;
-    auto header_to_remove = headers[0]; 
+    auto header_to_remove = headers[0];
     tracker.remove_block(header_to_remove);
 
     CHECK_EQ(nullptr, header_to_remove->next());

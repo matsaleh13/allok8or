@@ -7,8 +7,8 @@
 
 // Project headers
 #include "align.h"
-#include "types.h"
 #include "diagnostic_util.h"
+#include "types.h"
 
 // Library headers
 #include <cassert>
@@ -43,15 +43,19 @@ struct BlockSignature {
  */
 class BlockHeader {
   // Private ctor for use only by the factory (below).
-  BlockHeader(size_t user_data_size, size_t user_data_alignment,
-              const char* file_name = nullptr, int line = 0,
+  BlockHeader(size_t user_data_size,
+              size_t user_data_alignment,
+              const char* file_name = nullptr,
+              int line = 0,
               const char* type_name = nullptr);
 
 public:
-  static BlockHeader* create(void* block_start, size_t user_data_size,
+  static BlockHeader* create(void* block_start,
+                             size_t user_data_size,
                              size_t user_data_alignment,
                              const char* type_name = nullptr,
-                             const char* file_name = nullptr, int line = 0);
+                             const char* file_name = nullptr,
+                             int line = 0);
   ~BlockHeader() = default;
 
   BlockHeader() = delete;
@@ -80,8 +84,8 @@ public:
   constexpr bool is_valid() const;
 
 private:
-  void set_caller_details(const char* file_name, int line,
-                          const char* type_name);
+  void
+  set_caller_details(const char* file_name, int line, const char* type_name);
 
   BlockHeader* m_next;
   BlockHeader* m_prev;
@@ -128,8 +132,12 @@ inline BlockHeader::BlockHeader(size_t user_data_size,
 template <size_t N>
 inline constexpr void
 BlockHeader::get_block_info_string(char (&buffer)[N]) const {
-  snprintf(buffer, N, "type [%s] file [%s] line [%d] size [%d]", type_name(),
-           m_file_name, m_line,
+  snprintf(buffer,
+           N,
+           "type [%s] file [%s] line [%d] size [%d]",
+           type_name(),
+           m_file_name,
+           m_line,
            static_cast<int>(m_user_data_size)); // TODO: size_t or not?
 }
 
@@ -158,10 +166,12 @@ inline BlockHeader* BlockHeader::get_header(const void* user_data) {
  * @param user_data Pointer to new object that already has a header.
  */
 template <typename T>
-inline constexpr void allok8or::diagnostic::BlockHeader::set_caller_details(
-    const CallerDetails& caller_details, const T* user_data) {
+inline constexpr void
+BlockHeader::set_caller_details(const CallerDetails& caller_details,
+                                const T* user_data) {
   get_header(reinterpret_cast<const void*>(user_data))
-      ->set_caller_details(caller_details.file_name(), caller_details.line(),
+      ->set_caller_details(caller_details.file_name(),
+                           caller_details.line(),
                            get_type_name<T>());
 }
 
@@ -171,7 +181,8 @@ inline constexpr void allok8or::diagnostic::BlockHeader::set_caller_details(
  * @param line __LINE__ at the allocation call site.
  * @param type_name Name of the data type allocated.
  */
-inline void BlockHeader::set_caller_details(const char* file_name, int line,
+inline void BlockHeader::set_caller_details(const char* file_name,
+                                            int line,
                                             const char* type_name) {
   if (!is_valid())
     return; // Not a BlockHeader.
@@ -187,7 +198,6 @@ inline void BlockHeader::set_caller_details(const char* file_name, int line,
   m_line = line;
   m_type_name = type_name;
 }
-
 
 /**
  * Manages the linked list of headers and generates metrics from them.
@@ -220,6 +230,24 @@ private:
   llong_t m_num_blocks;
   llong_t m_num_bytes;
 };
+
+
+/**
+ * @brief Overload of operator* that merges caller details with the object
+ * allocated.
+ *
+ * @tparam T Data type of the object to be "stamped".
+ * @param caller_details A CallerDetails containing the data to be used to
+ * "stamp" the object.
+ * @param user_data Pointer to the object to be "stamped".
+ * @return T* Pointer to the input object.
+ */
+template <typename T>
+inline constexpr T* operator*(const CallerDetails& caller_details,
+                              T* user_data) {
+  BlockHeader::set_caller_details<T>(caller_details, user_data);
+  return user_data;
+}
 
 } // namespace diagnostic
 } // namespace allok8or
