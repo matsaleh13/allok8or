@@ -12,6 +12,7 @@
 #include <cstddef>
 #include <cstring>
 #include <iostream>
+#include <cassert>
 
 namespace allok8or {
 namespace diagnostic {
