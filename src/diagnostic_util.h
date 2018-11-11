@@ -41,19 +41,13 @@ public:
   constexpr static const char* get_type_name(void);
 
 private:
-  // constexpr static void
-  // get_type_name(const char* func_string, const char*& start, const char*& end);
-
   template <size_t N>
   constexpr static void get_type_name(const char (&func_string)[N],
-                               const char*& start,
-                               const char*& end);
-  static const size_t TYPE_BUFFER_SIZE = 128;
+                                      const char*& start,
+                                      const char*& end);
+  static const size_t TYPE_BUFFER_SIZE = 256;
   static char m_type_name[TYPE_BUFFER_SIZE];
 };
-
-template <typename T>
-const size_t TypeNameHelper<T>::TYPE_BUFFER_SIZE = 256;
 
 template <typename T>
 char TypeNameHelper<T>::m_type_name[TYPE_BUFFER_SIZE] = {'\0'};
@@ -69,18 +63,19 @@ char TypeNameHelper<T>::m_type_name[TYPE_BUFFER_SIZE] = {'\0'};
  */
 template <typename T>
 constexpr const char* TypeNameHelper<T>::get_type_name(void) {
-
   if (!m_type_name[0]) {
     // Populate only on first use.
-
     const char* start = nullptr;
     const char* end = nullptr;
 
     std::cout << "ALK8_PRETTY_FUNCTION: " << ALK8_PRETTY_FUNCTION << std::endl;
+    assert(sizeof(ALK8_PRETTY_FUNCTION) > 0);   // Do we not have an implementation?
 
     get_type_name(ALK8_PRETTY_FUNCTION, start, end);
 
     ptrdiff_t type_name_size = end - start;
+    assert(type_name_size > 0);   // If not, we must have a parsing error or other fundamental problem.
+
     memcpy(m_type_name, start, type_name_size);
     m_type_name[type_name_size] = 0; // ending null.
 
@@ -95,8 +90,8 @@ constexpr const char* TypeNameHelper<T>::get_type_name(void) {
 }
 
 #if defined(_MSC_VER)
-// MSVS implementation: relies on parsing T from the struct name in
-// __FUNCTION__.
+// MSVS implementation: relies on parsing T from the parameterized struct name
+// in the __FUNCTION__ string.
 
 /**
  * @brief Parse the type out of the func_string.
@@ -116,12 +111,8 @@ constexpr void TypeNameHelper<T>::get_type_name(const char (&func_string)[N],
       sizeof("allok8or::diagnostic::TypeNameHelper<") - 1u;
   constexpr static const size_t suffix_size = sizeof(">::get_type_name") - 1u;
 
-  // Find the end of the func_string
-  for (end = func_string; *end; ++end)
-    ; // TODO: guard against bad data?
-
-  // Back off to the start of the suffix.
-  end = &func_string[N-1];
+  // End at the start of the suffix.
+  end = &func_string[N - 1];
   end -= suffix_size;
 
   // Start at the end of the prefix.
@@ -129,7 +120,7 @@ constexpr void TypeNameHelper<T>::get_type_name(const char (&func_string)[N],
   start += prefix_size;
 }
 
-#elif defined(__clang__) || defined(__GNUC__)
+#elif defined(__clang__)
 // Clang/GCC implementation: relies on parsing T from the trailing annotation of
 // __PRETTY_FUNCTION__.
 
@@ -139,17 +130,20 @@ constexpr void TypeNameHelper<T>::get_type_name(const char (&func_string)[N],
  * NOTE: We want `<typename>` from: `[T = <typename>]`, at the end of
  * __PRETTY_FUNCTION__.
  *
- * @param func_string The __PRETTY_FUNCTION__ string from the caller.
+ * @tparam T Class template param from which to extract the type name.
+ * @tparam N Array size template param from which to deduce the string length.
+ * @param func_string The __PRETTY_FUNCTION__ string from the caller, as a char
+ * array.
  * @param start [OUT] Pointer to start of the type string.
  * @param end [OUT] Pointer to end of the type string.
  */
 template <typename T>
-constexpr void TypeNameHelper<T>::get_type_name(const char* func_string,
+template <size_t N>
+constexpr void TypeNameHelper<T>::get_type_name(const char (&func_string)[N],
                                                 const char*& start,
                                                 const char*& end) {
-  // Find the end of the func_string
-  for (end = func_string; *end; ++end)
-    ; // TODO: guard against bad data?
+  // Start at the end.
+  end = &func_string[N - 1];
 
   // Walk back to the closing `]`
   --end;
@@ -162,6 +156,8 @@ constexpr void TypeNameHelper<T>::get_type_name(const char* func_string,
   start += 2; // skip '=' and ' '
 }
 
+#elif (__GNUC__)
+// TODO, and others
 #endif
 
 /**

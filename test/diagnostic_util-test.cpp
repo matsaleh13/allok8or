@@ -86,7 +86,7 @@ TEST_CASE("get_type_name_FooTN") {
 
   // For more complex types we need to match on regex because different
   // compilers emit different strings.
-  std::string pat("FooTN\\<\\D+42\\>");
+  std::string pat("FooTN\\<[^4]+42\\>");
   std::regex re(pat);
   CHECK_MESSAGE(std::regex_search(type_name, re), pat);
 

@@ -99,3 +99,7 @@
   - Regex matching is kind of a PITA becuase of how `__FUNCTION__` and `__PRETTY_FUNCTION__` differ.
   - Eventually decided to relax the patterns a bit until the tests work. We just have to get close IMO.
   - Ready to commit and test again on Clang.
+- Got the array size template to work on Clang too, surprisingly: 
+  - Need to refresh my memory on how that works, because I thought a non-literal const char* string wouldn't do it.
+  - Tests work too, w00t.
+
