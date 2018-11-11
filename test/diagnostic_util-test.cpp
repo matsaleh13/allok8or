@@ -56,8 +56,9 @@ TEST_CASE("get_type_name_std_string") {
   
   // For more complex types we need to match on regex because different
   // compilers emit different strings.
-  std::regex pat("std::.*string");
-  CHECK_UNARY(std::regex_search(type_name, pat));
+  std::string pat("std::.*string");
+  std::regex re(pat);
+  CHECK_MESSAGE(std::regex_search(type_name, re), pat);
 
   // Static data, so verify second call.
   auto type_name2 = diagnostic::get_type_name<std::string>();
@@ -70,8 +71,9 @@ TEST_CASE("get_type_name_FooT") {
 
   // For more complex types we need to match on regex because different
   // compilers emit different strings.
-  std::regex pat("FooT\\<int\\>");
-  CHECK_UNARY(std::regex_search(type_name, pat));
+  std::string pat("FooT\\<int\\>");
+  std::regex re(pat);
+  CHECK_MESSAGE(std::regex_search(type_name, re), pat);
 
   // Static data, so verify second call.
   auto type_name2 = diagnostic::get_type_name<FooT<int>>();
@@ -84,8 +86,9 @@ TEST_CASE("get_type_name_FooTN") {
 
   // For more complex types we need to match on regex because different
   // compilers emit different strings.
-  std::regex pat("FooTN\\<std::.*basic_string\\<char.*\\>, 42\\>");
-  CHECK_UNARY(std::regex_search(type_name, pat));
+  std::string pat("FooTN\\<\\D+42\\>");
+  std::regex re(pat);
+  CHECK_MESSAGE(std::regex_search(type_name, re), pat);
 
   // Static data, so verify second call.
   auto type_name2 = diagnostic::get_type_name<FooTN<std::string, 42>>();
@@ -98,8 +101,9 @@ TEST_CASE("get_type_name_BarT") {
 
   // For more complex types we need to match on regex because different
   // compilers emit different strings.
-  std::regex pat("BarT\\<double\\>");
-  CHECK_UNARY(std::regex_search(type_name, pat));
+  std::string pat("BarT\\<double\\>");
+  std::regex re(pat);
+  CHECK_MESSAGE(std::regex_search(type_name, re), pat);
 
   // Static data, so verify second call.
   auto type_name2 = diagnostic::get_type_name<BarT<double>>();

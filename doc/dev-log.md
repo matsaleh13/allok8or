@@ -87,3 +87,15 @@
 - Finally got TypeNameHelper working on Clang:
   - Preserved constexpr by adding a method that takes the __*FUNCTION__ string and a `start` and `end` pointer as OUT params. That way, no need to declare local vars.
   - Refactored to minimize the amount of compiler-specific code.
+- Meanwhile, back in MSVS, we have new test errors:
+  - First, forgot to init `start` so overflowed the array size argument.
+  - Wanted to use the fixed size of the string literal to avoid walking the string, so implemented a template version with array size argument. That worked pretty well.
+  - But, will it work on Clang, with the non-macro implementation of `__PRETTY_FUNCTION__`?
+
+
+## 2018-11-11
+
+- Still working on getting TypeNameHelper and tests to work on MSVS:
+  - Regex matching is kind of a PITA becuase of how `__FUNCTION__` and `__PRETTY_FUNCTION__` differ.
+  - Eventually decided to relax the patterns a bit until the tests work. We just have to get close IMO.
+  - Ready to commit and test again on Clang.

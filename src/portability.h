@@ -15,7 +15,7 @@
 
 
 // "Pretty Function" macro
-#if defined(_MSV_VER)
+#if defined(_MSC_VER)
   #define ALK8_PRETTY_FUNCTION __FUNCTION__
 #elif defined (__clang__)
   #define ALK8_PRETTY_FUNCTION __PRETTY_FUNCTION__
