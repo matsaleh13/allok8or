@@ -106,6 +106,4 @@
   - Fixed compile errors from template instantiations.
   - Fixed a few runtime errors.
   - All tests pass on Windows.
-
-  
-
+- Verified that everything builds with clang and all tests pass on OS X, w00t.
