@@ -102,4 +102,10 @@
 - Got the array size template to work on Clang too, surprisingly: 
   - Need to refresh my memory on how that works, because I thought a non-literal const char* string wouldn't do it.
   - Tests work too, w00t.
+- Implemented tests for DiagnosticAllocator:
+  - Fixed compile errors from template instantiations.
+  - Fixed a few runtime errors.
+  - All tests pass on Windows.
+
+  
 

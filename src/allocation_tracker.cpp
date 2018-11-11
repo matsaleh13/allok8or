@@ -52,6 +52,7 @@ BlockHeader* BlockHeader::create(void* block_start,
   if (!block_start || !user_data_size || !user_data_alignment)
     return nullptr;
 
+  // Use placement new to init the header in the given memory block.
   BlockHeader* header = new (block_start) BlockHeader(
       user_data_size, user_data_alignment, file_name, line, type_name);
 
@@ -89,7 +90,7 @@ AllocationTracker::~AllocationTracker() {
  * @return true when block added.
  * @return false when failed to add block.
  */
-bool AllocationTracker::add_block(BlockHeader* block) {
+bool AllocationTracker::add(BlockHeader* block) {
   assert(block);
   assert(!in_list(block));
 
@@ -123,7 +124,7 @@ bool AllocationTracker::add_block(BlockHeader* block) {
  * @return true when block removed.
  * @return false when failed to remove block.
  */
-bool AllocationTracker::remove_block(BlockHeader* block) {
+bool AllocationTracker::remove(BlockHeader* block) {
   assert(block);
   assert(in_list(block));
   assert(m_head);

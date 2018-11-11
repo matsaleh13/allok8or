@@ -29,3 +29,7 @@ target_link_libraries(allocation_tracker-test allok8or-core)
 add_executable(diagnostic_util-test diagnostic_util-test.cpp $<TARGET_OBJECTS:allok8or-test>)
 add_test(NAME diagnostic_util-test COMMAND diagnostic_util-test)
 target_link_libraries(diagnostic_util-test allok8or-core)
+
+add_executable(diagnostic_allocator-test diagnostic_allocator-test.cpp $<TARGET_OBJECTS:allok8or-test>)
+add_test(NAME diagnostic_allocator-test COMMAND diagnostic_allocator-test)
+target_link_libraries(diagnostic_allocator-test allok8or-core)

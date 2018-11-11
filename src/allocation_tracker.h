@@ -209,8 +209,8 @@ public:
   AllocationTracker();
   ~AllocationTracker();
 
-  bool add_block(BlockHeader* pBlock);
-  bool remove_block(BlockHeader* pBlock);
+  bool add(BlockHeader* pBlock);
+  bool remove(BlockHeader* pBlock);
   bool in_list(BlockHeader* pBlock) const {
     return (m_head == pBlock || m_tail == pBlock || pBlock->next() ||
             pBlock->prev());

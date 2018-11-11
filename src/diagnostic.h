@@ -6,7 +6,7 @@
 #pragma once
 
 // Project headers
-
+#include "allocation_tracker.h"
 
 // Library headers
 #include <cstddef>
@@ -19,108 +19,88 @@ namespace allok8or
 /**
 * DiagnosticAllocator
 *
-* An allocator that tracks and reports on net allocations for the purpose of 
-* identifying memory leaks.
+* An allocator that tracks net allocations for the purpose of identifying memory leaks.
 *
-* This allocator does not itself manage allocated memory. It passes that responsibility
-* off to another allocator that is passed as an argument.
+* This allocator does not itself manage allocated memory. Rather, another allocator
+* passed in as a ctor argument does that. 
 */
-template <typename AllocatorT>
+template <typename TAllocator>
 class DiagnosticAllocator
 {
 public:
-  DiagnosticAllocator( AllocatorT& );
+  DiagnosticAllocator( TAllocator& );
   ~DiagnosticAllocator() {};
 
   void* allocate( size_t size, size_t alignment );
-
   void deallocate( void* user_data );
 
-  const Tracking::AllocationTracker& Tracker() const { return m_tracker; }
+  const diagnostic::AllocationTracker& Tracker() const { return m_tracker; }
 
 private:
 
-  AllocatorT& m_allocator;
-  Tracking::AllocationTracker m_tracker;
+  TAllocator& m_allocator;
+  diagnostic::AllocationTracker m_tracker;
 };
 
 
 /**
  * Constructor
- * @param pAllocator Reference to the allocator that will do the actual memory allocation.
+ * @param allocator The backing allocator to actually allocate/deallocate heap memory.
  */
-template <typename AllocatorT>
-DiagnosticAllocator<AllocatorT>::DiagnosticAllocator( AllocatorT& pAllocator )
-  : m_allocator(pAllocator)
+template <typename TAllocator>
+DiagnosticAllocator<TAllocator>::DiagnosticAllocator( TAllocator& allocator )
+  : m_allocator(allocator)
 {
 }
 
-
 /**
-* allocate
-* Acquires a block of memory from the backing allocator large enough to hold user data of size size, plus
-* an additional header for tracking purposes. Returns only the pointer to the user region of the
-* memory block, hiding the header from the caller.
-*
-* @param pUserDataSize The size required to hold the user data to be allocated.
-* @param pUserDataAlignment The alignment to use for the allocation.
-* @return Pointer to the user region of the allocated memory.
-*/
-template <typename AllocatorT>
-void* allok8or::DiagnosticAllocator<AllocatorT>::allocate( size_t pUserDataSize, size_t pUserDataAlignment )
+ * @brief Gets memory from the backing allocator and returns a pointer to the user portion.
+ * 
+ * NOTE: Allocates enough extra memory to hold the data used for tracking and detecting leaks.
+ *       The pointer returned to the caller is the starting address of the user portion of the
+ *       memory block.
+ * 
+ * @tparam TAllocator Type of the backing allocator.
+ * @param user_data_size The size of the memory requested by the caller.
+ * @param user_data_alignment The alignment requested by the caller.
+ * @return void* Pointer to the user portion of the memory.
+ */
+template <typename TAllocator>
+void* allok8or::DiagnosticAllocator<TAllocator>::allocate( size_t user_data_size, size_t user_data_alignment )
 {
-  auto alignedUserBytes = AlignUtil::GetAlignedSize( pUserDataSize, pUserDataAlignment );
-  auto totalBytes = alignedUserBytes + AlignUtil::GetAlignedSize( sizeof( Tracking::TwnBlockHeader ), alignof( Tracking::TwnBlockHeader ) );
+  auto aligned_user_data_size = align::get_aligned_size( user_data_size, user_data_alignment );
+  auto total_size = aligned_user_data_size + align::get_aligned_size( sizeof( diagnostic::BlockHeader ), alignof( diagnostic::BlockHeader ) );
 
-  auto memory = m_allocator.allocate( totalBytes, pUserDataAlignment );
-  auto header = Tracking::TwnBlockHeader::create( memory, alignedUserBytes, pUserDataAlignment );
+  auto memory_block = m_allocator.allocate( total_size, user_data_alignment );
+  auto header = diagnostic::BlockHeader::create( memory_block, aligned_user_data_size, user_data_alignment );
 
-  m_tracker.add_block( header );
+  m_tracker.add( header );
 
   return header->user_data();
 }
 
-//
-///**
-//* allocate
-//* Acquires a block of memory from the backing allocator large enough to hold an instance of type T, plus
-//* an additional header for tracking purposes. Returns only the pointer to the user region of the
-//* memory block, hiding the header from the caller.
-//*
-//* @param pUserDataAlignment The alignment to use for the allocation.
-//* @return Pointer to allocated memory.
-//*/
-//template <typename AllocatorT>
-//template <typename AllocT>
-//void* DiagnosticAllocator<AllocatorT>::allocate( const char* pFileName, int pLine, size_t pUserDataAlignment /*= alignof( AllocT ) */ )
-//{
-//  auto typeName = Tracking::get_type_name<AllocT>();
-//  auto alignedUserBytes = AlignUtil::GetAlignedSize( sizeof( AllocT ), pUserDataAlignment );
-//  auto totalBytes = alignedUserBytes + AlignUtil::GetAlignedSize( sizeof( Tracking::TwnBlockHeader ), alignof( Tracking::TwnBlockHeader ) );
-//
-//  auto memory = m_allocator.allocate( totalBytes, pUserDataAlignment );
-//  auto header = Tracking::TwnBlockHeader::create( memory, alignedUserBytes, pUserDataAlignment, pFileName, pLine, typeName );
-//
-//  m_tracker.add_block( header );
-//  
-//  return header->user_data();
-//}
-
 /**
- * deallocate
  * Given a pointer to the user region of a previously allocated block of memory, looks up the 
  * associated header, and releases the entire memory block back to the backing allocator.
  *
  * @param user_data Pointer to the user region of the allocated block to be deallocated.
  */
-template <typename AllocatorT>
-void DiagnosticAllocator<AllocatorT>::deallocate( void* pUserData )
+
+/**
+ * @brief Releases memory back to the backing allocator.
+ * 
+ * NOTE: Looks up the header using the pointer to the user memory provided.
+ * 
+ * @tparam TAllocator Type of the backing allocator.
+ * @param user_data Pointer to the user portion of the memory block to deallocate.
+ */
+template <typename TAllocator>
+void DiagnosticAllocator<TAllocator>::deallocate( void* user_data )
 {
-  Tracking::TwnBlockHeader* header = Tracking::TwnBlockHeader::get_header( pUserData );
-  TwnVerify( header->user_data() == pUserData );
+  diagnostic::BlockHeader* header = diagnostic::BlockHeader::get_header( user_data );
+  assert( header->user_data() == user_data );
 
-  m_tracker.remove_block( header );
-
+  m_tracker.remove( header );
   m_allocator.deallocate( header );
 }
 
