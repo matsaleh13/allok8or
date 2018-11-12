@@ -107,3 +107,7 @@
   - Fixed a few runtime errors.
   - All tests pass on Windows.
 - Verified that everything builds with clang and all tests pass on OS X, w00t.
+
+## 2018-11-12
+
+- Moved TypeNameHelper and tests into their own header/cpp files.
