@@ -125,3 +125,6 @@
   - Moved BlockHeader tests in to `diagnostic_header-test.cpp`
   - Renamed `allocation_tracker` to `diagnostic_allocation_tracker`.
   - Bah, names are getting long, but IMO the diagnostic stuff needs to be identified becuase they're all in the same namespace.
+- Even more refactoring, now on OSX:
+  - Clang found include issues that MSVS did not, becuase the templates haven't yet been expanded.
+  - Moved the operator* impelementation back to diagnostic_header.h.

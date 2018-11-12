@@ -227,5 +227,22 @@ inline constexpr bool BlockHeader::set_caller_details(const char* file_name,
 }
 
 
+/**
+ * @brief Overload of operator* that merges caller details with the object
+ * allocated.
+ *
+ * @tparam T Data type of the object to be "stamped".
+ * @param caller_details A CallerDetails containing the data to be used to
+ * "stamp" the object.
+ * @param user_data Pointer to the object to be "stamped".
+ * @return T* Pointer to the input object.
+ */
+template <typename T>
+inline constexpr T* operator*(const CallerDetails& caller_details,
+                              T* user_data) {
+  BlockHeader::set_caller_details<T>(caller_details, user_data);
+  return user_data;
+}
+
 } // namespace diagnostic
 } // namespace allok8or

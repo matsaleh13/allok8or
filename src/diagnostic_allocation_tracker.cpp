@@ -9,8 +9,9 @@
 
 // Project headers
 #include "align.h"
-#include "diagnostic_header.h"
 #include "logging.h"
+#include "diagnostic_header.h"
+
 
 // Library headers
 #include <new>

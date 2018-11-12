@@ -14,6 +14,8 @@
 #include "doctest.h"
 #include <memory>
 #include <vector>
+#include <string>
+#include <regex>
 
 using namespace allok8or;
 using byte_t = unsigned char;
@@ -131,7 +133,11 @@ TEST_CASE_TEMPLATE_DEFINE("block_header", T, test_id) {
 
     CHECK_EQ(std::string(file), std::string(header->file_name()));
     CHECK_EQ(line, header->line());
-    CHECK_EQ(std::string("class FooBarT<int>"), std::string(header->type_name()));
+
+    std::string pat("FooBarT\\<int\\>");
+    std::regex re(pat);
+
+    CHECK_MESSAGE(std::regex_search(std::string(header->type_name()), re), pat);
   }
 }
 
