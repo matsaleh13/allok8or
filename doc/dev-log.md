@@ -114,3 +114,10 @@
   - Built and re-ran tests on Windows, all good.
   - Committed and synced on OSX, and got build errors with clang, becuase I'd forgotten to `#include "type_name_helper.h"` from `allocation_tracker.h`. WTF didn't that show up in MSVS?
   - Fixed and committed again.
+- A bit of refactoring:
+  - Moved the magic macro out of `diagnostic_util.h` and into it's own header, `diagnostic_new.h`. Probably will overload operator new there too.
+  - Moved `CallerDetails` into `diagnostic_util.h` from `allocation_tracker.h`.
+- Fixed a bug in TypeNameHelper with trailing whitespace.
+- Added tests for BlockHeader::set_caller_details:
+  - Currently part of the BlockHeader create test, but that smells wrong.
+  - TODO: move into dedicated test case, and add negative path tests.

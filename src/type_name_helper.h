@@ -81,9 +81,9 @@ constexpr const char* TypeNameHelper<T>::get_type_name(void) {
     m_type_name[type_name_size] = 0; // ending null.
 
     // Adjust whitespace if needed.
-    if (m_type_name[type_name_size - 2] == ' ') {
+    if (m_type_name[type_name_size - 1] == ' ') {
       // account for space before closing angle bracket.
-      m_type_name[type_name_size - 2] = 0;
+      m_type_name[type_name_size - 1] = 0;
     }
   }
 

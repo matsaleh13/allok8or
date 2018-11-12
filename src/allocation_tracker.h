@@ -6,9 +6,9 @@
 #pragma once
 
 // Project headers
+#include "align.h"
 #include "diagnostic_util.h"
 #include "type_name_helper.h"
-#include "align.h"
 #include "types.h"
 
 // Library headers
@@ -43,7 +43,7 @@ struct BlockSignature {
  * Contains diagnostic data used for keeping track of a block of memory.
  */
 class BlockHeader {
-  // Private ctor for use only by the factory (below).
+  // Private; to be used only by the static factory method.
   BlockHeader(size_t user_data_size,
               size_t user_data_alignment,
               const char* file_name = nullptr,
@@ -71,8 +71,12 @@ public:
   void prev(BlockHeader* val) { m_prev = val; }
 
   constexpr const char* type_name() const { return m_type_name; }
+  constexpr const char* file_name() const { return m_file_name; }
+  constexpr int line() const { return m_line; }
+
   constexpr size_t user_data_size() const { return m_user_data_size; }
   size_t user_data_alignment() const { return m_user_data_alignment; }
+
   constexpr void* user_data() const { return m_user_data; }
 
   // Utility methods
@@ -80,12 +84,12 @@ public:
   constexpr void get_block_info_string(char (&buffer)[N]) const;
   static BlockHeader* get_header(const void* memory);
   template <typename T>
-  constexpr static void set_caller_details(const CallerDetails& caller_details,
+  constexpr static bool set_caller_details(const CallerDetails& caller_details,
                                            const T* user_data);
   constexpr bool is_valid() const;
 
 private:
-  void
+  constexpr bool
   set_caller_details(const char* file_name, int line, const char* type_name);
 
   BlockHeader* m_next;
@@ -108,7 +112,17 @@ private:
 };
 
 /**
- * Constructor
+ * @brief Ctor for internal use only.
+ * 
+ * NOTE: file_name, line, and type_name are reserved for special cases, 
+ *       not yet implemented. Those cases will probably require an overload of
+ *       the factory method. TODO: remove these until needed?
+ * 
+ * @param user_data_size Size of memory block requested by the caller.
+ * @param user_data_alignment Alignment requested by the caller.
+ * @param file_name __FILE__ at the call site, or null (default).
+ * @param line __LINE__ at the call site, or 0 (default).
+ * @param type_name String representation of the type for which the block is created, or null (default).
  */
 inline BlockHeader::BlockHeader(size_t user_data_size,
                                 size_t user_data_alignment,
@@ -128,7 +142,11 @@ inline BlockHeader::BlockHeader(size_t user_data_size,
 }
 
 /**
- * Format buffer with header contents so we can log it.
+ * @brief Format buffer with header contents so we can log it.
+ * 
+ * @tparam N 
+ * @param buffer Character buffer to fill with the formatted data.
+ * 
  */
 template <size_t N>
 inline constexpr void
@@ -137,20 +155,23 @@ BlockHeader::get_block_info_string(char (&buffer)[N]) const {
            N,
            "type [%s] file [%s] line [%d] size [%d]",
            type_name(),
-           m_file_name,
-           m_line,
+           file_name(),
+           line(),
            static_cast<int>(m_user_data_size)); // TODO: size_t or not?
 }
 
 /**
- * Returns true if the header's signature matches the global signature.
+ * @brief Verifies that this header is representing a block of memory created for the header.
+ * 
+ * @return true When the header has a signature that matches the global one.
+ * @return false When the header does not have a signature that matches the global one.
  */
 inline constexpr bool BlockHeader::is_valid() const {
   return m_signature == BLOCK_SIGNATURE;
 }
 
 /**
- * Returns the header when given a pointer to user memory.
+ * @brief Returns the header when given a pointer to user memory.
  *
  * @param Pointer to user memory.
  * @returns Pointer to the BlockHeader for the given user memory.
@@ -162,42 +183,46 @@ inline BlockHeader* BlockHeader::get_header(const void* user_data) {
 }
 
 /**
- * Records the caller details and data type in the header.
+ * @brief Records the caller details and data type in the header.
+ * 
  * @param caller_details A CallerDetails object containing caller details.
  * @param user_data Pointer to new object that already has a header.
+ * @return true When the header is valid and call details haven't been set yet.
+ * @return false When the header is NOT valid OR call details HAVE alread been set.
  */
 template <typename T>
-inline constexpr void
+inline constexpr bool
 BlockHeader::set_caller_details(const CallerDetails& caller_details,
                                 const T* user_data) {
-  get_header(reinterpret_cast<const void*>(user_data))
+  return get_header(reinterpret_cast<const void*>(user_data))
       ->set_caller_details(caller_details.file_name(),
                            caller_details.line(),
                            get_type_name<T>());
 }
 
 /**
- * Sets the __FILE__, __LINE__, and data type of the allocation into the header.
+ * @brief Sets the __FILE__, __LINE__, and data type of the allocation into the header.
+ * 
  * @param file_name __FILE__ at the allocation call site.
  * @param line __LINE__ at the allocation call site.
  * @param type_name Name of the data type allocated.
+ * @return true When the header is valid and call details haven't been set yet.
+ * @return false When the header is NOT valid OR call details HAVE alread been set.
  */
-inline void BlockHeader::set_caller_details(const char* file_name,
-                                            int line,
-                                            const char* type_name) {
+inline constexpr bool BlockHeader::set_caller_details(const char* file_name,
+                                                      int line,
+                                                      const char* type_name) {
   if (!is_valid())
-    return; // Not a BlockHeader.
-
-  assert(!m_file_name);
-  assert(!m_line);
-  assert(!m_type_name);
+    return false; // Not a BlockHeader.
 
   if (m_file_name || m_line || m_type_name)
-    return;
+    return false;  // Already set
 
   m_file_name = file_name;
   m_line = line;
   m_type_name = type_name;
+
+  return true;
 }
 
 /**
@@ -231,24 +256,6 @@ private:
   llong_t m_num_blocks;
   llong_t m_num_bytes;
 };
-
-
-/**
- * @brief Overload of operator* that merges caller details with the object
- * allocated.
- *
- * @tparam T Data type of the object to be "stamped".
- * @param caller_details A CallerDetails containing the data to be used to
- * "stamp" the object.
- * @param user_data Pointer to the object to be "stamped".
- * @return T* Pointer to the input object.
- */
-template <typename T>
-inline constexpr T* operator*(const CallerDetails& caller_details,
-                              T* user_data) {
-  BlockHeader::set_caller_details<T>(caller_details, user_data);
-  return user_data;
-}
 
 } // namespace diagnostic
 } // namespace allok8or
