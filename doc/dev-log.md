@@ -110,4 +110,7 @@
 
 ## 2018-11-12
 
-- Moved TypeNameHelper and tests into their own header/cpp files.
+- Moved TypeNameHelper and tests into their own header/cpp files:
+  - Built and re-ran tests on Windows, all good.
+  - Committed and synced on OSX, and got build errors with clang, becuase I'd forgotten to `#include "type_name_helper.h"` from `allocation_tracker.h`. WTF didn't that show up in MSVS?
+  - Fixed and committed again.

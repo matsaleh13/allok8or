@@ -6,8 +6,9 @@
 #pragma once
 
 // Project headers
-#include "align.h"
 #include "diagnostic_util.h"
+#include "type_name_helper.h"
+#include "align.h"
 #include "types.h"
 
 // Library headers
