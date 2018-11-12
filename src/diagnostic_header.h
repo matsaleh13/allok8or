@@ -1,8 +1,9 @@
 /**
- * @file allocation_tracker.h
- * @brief Classes used for tracking allocations and deallocations.
- *
+ * @file diagnostic_header.h
+ * @brief Memory block header for tracking allocations.
+ * 
  */
+
 #pragma once
 
 // Project headers
@@ -225,37 +226,6 @@ inline constexpr bool BlockHeader::set_caller_details(const char* file_name,
   return true;
 }
 
-/**
- * Manages the linked list of headers and generates metrics from them.
- *
- * NOTE: Blocks are added only to the head of the doubly-linked list.
- */
-class AllocationTracker {
-public:
-  AllocationTracker();
-  ~AllocationTracker();
-
-  bool add(BlockHeader* pBlock);
-  bool remove(BlockHeader* pBlock);
-  bool in_list(BlockHeader* pBlock) const {
-    return (m_head == pBlock || m_tail == pBlock || pBlock->next() ||
-            pBlock->prev());
-  }
-  const BlockHeader* head() const { return m_head; }
-  const BlockHeader* tail() const { return m_tail; }
-
-  llong_t num_blocks() const { return m_num_blocks; }
-  llong_t num_bytes() const { return m_num_bytes; }
-
-  void log_raw_blocks();
-  void log_block_summary();
-
-private:
-  BlockHeader* m_head;
-  BlockHeader* m_tail;
-  llong_t m_num_blocks;
-  llong_t m_num_bytes;
-};
 
 } // namespace diagnostic
 } // namespace allok8or

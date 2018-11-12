@@ -22,9 +22,9 @@ add_executable(pass_through_allocator-test pass_through_allocator-test.cpp $<TAR
 add_test(NAME pass_through_allocator-test COMMAND pass_through_allocator-test)
 target_link_libraries(pass_through_allocator-test allok8or-core)
 
-add_executable(allocation_tracker-test allocation_tracker-test.cpp $<TARGET_OBJECTS:allok8or-test>)
-add_test(NAME allocation_tracker-test COMMAND allocation_tracker-test)
-target_link_libraries(allocation_tracker-test allok8or-core)
+add_executable(diagnostic_allocation_tracker-test diagnostic_allocation_tracker-test.cpp $<TARGET_OBJECTS:allok8or-test>)
+add_test(NAME diagnostic_allocation_tracker-test COMMAND diagnostic_allocation_tracker-test)
+target_link_libraries(diagnostic_allocation_tracker-test allok8or-core)
 
 add_executable(diagnostic_util-test diagnostic_util-test.cpp $<TARGET_OBJECTS:allok8or-test>)
 add_test(NAME diagnostic_util-test COMMAND diagnostic_util-test)
@@ -37,3 +37,7 @@ target_link_libraries(type_name_helper-test allok8or-core)
 add_executable(diagnostic_allocator-test diagnostic_allocator-test.cpp $<TARGET_OBJECTS:allok8or-test>)
 add_test(NAME diagnostic_allocator-test COMMAND diagnostic_allocator-test)
 target_link_libraries(diagnostic_allocator-test allok8or-core)
+
+add_executable(diagnostic_header-test diagnostic_header-test.cpp $<TARGET_OBJECTS:allok8or-test>)
+add_test(NAME diagnostic_header-test COMMAND diagnostic_header-test)
+target_link_libraries(diagnostic_header-test allok8or-core)

@@ -1,14 +1,15 @@
 /**
- * @file allocation_tracker.cpp
+ * @file diagnostic_allocation_tracker.cpp
  * @brief Classes used for tracking allocations and deallocations.
  *
  */
 
 // My header
-#include "allocation_tracker.h"
+#include "diagnostic_allocation_tracker.h"
 
 // Project headers
 #include "align.h"
+#include "diagnostic_header.h"
 #include "logging.h"
 
 // Library headers
@@ -170,6 +171,10 @@ bool AllocationTracker::remove(BlockHeader* block) {
   }
 
   return true;
+}
+
+bool AllocationTracker::in_list(BlockHeader* block) const {
+  return (m_head == block || m_tail == block || block->next() || block->prev());
 }
 
 /**

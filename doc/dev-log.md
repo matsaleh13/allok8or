@@ -92,7 +92,6 @@
   - Wanted to use the fixed size of the string literal to avoid walking the string, so implemented a template version with array size argument. That worked pretty well.
   - But, will it work on Clang, with the non-macro implementation of `__PRETTY_FUNCTION__`?
 
-
 ## 2018-11-11
 
 - Still working on getting TypeNameHelper and tests to work on MSVS:
@@ -121,3 +120,8 @@
 - Added tests for BlockHeader::set_caller_details:
   - Currently part of the BlockHeader create test, but that smells wrong.
   - TODO: move into dedicated test case, and add negative path tests.
+- More refactoring:
+  - Moved BlockHeader into `diagnostic_header.h`.
+  - Moved BlockHeader tests in to `diagnostic_header-test.cpp`
+  - Renamed `allocation_tracker` to `diagnostic_allocation_tracker`.
+  - Bah, names are getting long, but IMO the diagnostic stuff needs to be identified becuase they're all in the same namespace.

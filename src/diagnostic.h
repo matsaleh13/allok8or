@@ -6,7 +6,8 @@
 #pragma once
 
 // Project headers
-#include "allocation_tracker.h"
+#include "diagnostic_allocation_tracker.h"
+#include "diagnostic_header.h"
 
 // Library headers
 #include <cstddef>
