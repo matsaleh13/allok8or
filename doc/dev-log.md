@@ -119,7 +119,6 @@
 - Fixed a bug in TypeNameHelper with trailing whitespace.
 - Added tests for BlockHeader::set_caller_details:
   - Currently part of the BlockHeader create test, but that smells wrong.
-  - TODO: move into dedicated test case, and add negative path tests.
 - More refactoring:
   - Moved BlockHeader into `diagnostic_header.h`.
   - Moved BlockHeader tests in to `diagnostic_header-test.cpp`
@@ -128,3 +127,4 @@
 - Even more refactoring, now on OSX:
   - Clang found include issues that MSVS did not, becuase the templates haven't yet been expanded.
   - Moved the operator* impelementation back to diagnostic_header.h.
+- Created separate tests for `set_caller_details`, including a couple negative paths.

@@ -13,9 +13,9 @@
 // Library headers
 #include "doctest.h"
 #include <memory>
-#include <vector>
-#include <string>
 #include <regex>
+#include <string>
+#include <vector>
 
 using namespace allok8or;
 using byte_t = unsigned char;
@@ -79,10 +79,6 @@ const size_t AllocationTrackerFixture<T>::aligned_header_size =
     align::get_aligned_size(sizeof(diagnostic::BlockHeader),
                             alignof(diagnostic::BlockHeader));
 
-// Test data type used below
-template <typename T>
-class FooBarT {};
-
 TEST_CASE_TEMPLATE_DEFINE("block_header", T, test_id) {
   using FixtureT = AllocationTrackerFixture<T>;
   FixtureT fixture;
@@ -92,10 +88,8 @@ TEST_CASE_TEMPLATE_DEFINE("block_header", T, test_id) {
   void* user_data_start =
       reinterpret_cast<void*>(memory + FixtureT::aligned_header_size);
 
-  const auto header =
-      diagnostic::BlockHeader::create(memory,
-                                      FixtureT::user_data_size,
-                                      FixtureT::user_data_alignment);
+  const auto header = diagnostic::BlockHeader::create(
+      memory, FixtureT::user_data_size, FixtureT::user_data_alignment);
 
   SUBCASE("linked_list") {
     CHECK_EQ(nullptr, header->next());
@@ -116,28 +110,6 @@ TEST_CASE_TEMPLATE_DEFINE("block_header", T, test_id) {
              header->user_data());
     CHECK_EQ(user_data_start, header->user_data());
     CHECK_EQ(header, diagnostic::BlockHeader::get_header(user_data_start));
-  }
-
-  SUBCASE("set_caller_details") {
-    // NOTE: this is the only test in this suite that uses an actual type.
-    
-    // Placement new to create instance.
-    auto foobar = new (header->user_data()) FooBarT<int>();
-
-    auto file = __FILE__;
-    auto line =
-        __LINE__; // doesn't have to be the *actual* call site for this test.
-    auto details = diagnostic::CallerDetails(file, line);
-
-    diagnostic::BlockHeader::set_caller_details(details, foobar);
-
-    CHECK_EQ(std::string(file), std::string(header->file_name()));
-    CHECK_EQ(line, header->line());
-
-    std::string pat("FooBarT\\<int\\>");
-    std::regex re(pat);
-
-    CHECK_MESSAGE(std::regex_search(std::string(header->type_name()), re), pat);
   }
 }
 
@@ -179,3 +151,81 @@ TEST_CASE_TEMPLATE_INSTANTIATE(test_id,
                                AllocationParams<1024 * 1024 * 10, 64>,
                                AllocationParams<1024 * 1024 * 10, 128>);
 
+// Test data type used below
+template <typename T>
+class FooBarT {
+public:
+  T m_data;
+};
+
+TEST_CASE("set_caller_details") {
+  using IntFooBarT = FooBarT<int>;
+  using FixtureT = AllocationTrackerFixture<
+      AllocationParams<sizeof(IntFooBarT), alignof(IntFooBarT)>>;
+  FixtureT fixture;
+
+  auto memory = fixture.create_buffer(FixtureT::aligned_user_data_size +
+                                      FixtureT::aligned_header_size);
+
+  SUBCASE("success_when_using_valid_header") {
+    const auto header = diagnostic::BlockHeader::create(
+        memory, FixtureT::user_data_size, FixtureT::user_data_alignment);
+
+    // Placement new to create instance.
+    auto foobar = new (header->user_data()) IntFooBarT();
+
+    auto file = __FILE__;
+    auto line =
+        __LINE__; // doesn't have to be the *actual* call site for this test.
+    auto details = diagnostic::CallerDetails(file, line);
+
+    auto ok = diagnostic::BlockHeader::set_caller_details(details, foobar);
+    CHECK_MESSAGE(ok, "set_caller_details failed");
+
+    CHECK_EQ(std::string(file), std::string(header->file_name()));
+    CHECK_EQ(line, header->line());
+
+    std::string pat("FooBarT\\<int\\>");
+    std::regex re(pat);
+
+    CHECK_MESSAGE(std::regex_search(std::string(header->type_name()), re), pat);
+  }
+
+  SUBCASE("error_when_using_invalid_header") {
+    // NOTE: Not using a BlockHeader object.
+
+    // Placement new to create instance.
+    auto foobar = new (memory) IntFooBarT();
+
+    auto file = __FILE__;
+    auto line =
+        __LINE__; // doesn't have to be the *actual* call site for this test.
+    auto details = diagnostic::CallerDetails(file, line);
+
+    // Definitly invalid header here
+    auto ok = diagnostic::BlockHeader::set_caller_details(details, foobar);
+    CHECK_MESSAGE(!ok, "set_caller_details did not fail when it should have.");
+  }
+
+  SUBCASE("error_when_call_details_already_set") {
+    const auto header = diagnostic::BlockHeader::create(
+        memory, FixtureT::user_data_size, FixtureT::user_data_alignment);
+
+    // Placement new to create instance.
+    auto foobar = new (header->user_data()) IntFooBarT();
+
+    auto file = __FILE__;
+    auto line =
+        __LINE__; // doesn't have to be the *actual* call site for this test.
+    auto details = diagnostic::CallerDetails(file, line);
+
+    // First time.
+    auto ok = diagnostic::BlockHeader::set_caller_details(details, foobar);
+
+    // Call details already set
+    ok = diagnostic::BlockHeader::set_caller_details(details, foobar);
+ 
+    CHECK_MESSAGE(!ok, "set_caller_details did not fail when it should have.");
+  }
+
+}
