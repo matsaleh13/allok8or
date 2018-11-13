@@ -128,3 +128,23 @@
   - Clang found include issues that MSVS did not, becuase the templates haven't yet been expanded.
   - Moved the operator* impelementation back to diagnostic_header.h.
 - Created separate tests for `set_caller_details`, including a couple negative paths.
+
+## 2018-11-13
+
+- Want to implement some basic non-singleton way to support global allocator, for use from global operator new overload:
+  - Don't want vtable overhead, so no abstract base.
+  - But, templated class requires knowing the type always, right?
+- Researched various issues related to vtable runtime performance and alternatives:
+  - [Curiously-recurring Template Pattern (CRTP)](https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern)
+  - [The Curiously Recurring Template Pattern in C++](https://eli.thegreenplace.net/2011/05/17/the-curiously-recurring-template-pattern-in-c/)
+  - [The cost of dynamic (virtual calls) vs. static (CRTP) dispatch in C++](https://eli.thegreenplace.net/2013/12/05/the-cost-of-dynamic-virtual-calls-vs-static-crtp-dispatch-in-c)
+  - And others.
+- Key takeaway for me:
+  - Using CRTP allows us to access via the base class if we know the derived class type.
+  - At first seems non-abstract/non-polymorphic.
+  - But, if we implement APIs as template functions having arguments expressed in terms of `Base<Derived>`, then we get abstract-ish behavior.
+  - Also, even though the base class is templated, if the derived class is not, we can put implementation into the .cpp file.
+- Implemented a CRTP-based Allocator class to define the interface.
+  - Derived `PassthroughAllocator` from it.
+  - Updated `pass_through_allocator-test.cpp` to access the allocator via the base<T>.
+  - Works so far.
