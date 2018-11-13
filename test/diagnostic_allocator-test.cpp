@@ -8,6 +8,7 @@
 #include "diagnostic.h"
 
 // Project headers
+#include "allocator.h"
 #include "align.h"
 #include "pass_through.h"
 
@@ -17,6 +18,30 @@
 #include <memory>
 
 using namespace allok8or;
+
+/**
+ * @brief Wrapper to call through base class interface.
+ */
+template <typename TAlloc>
+void* call_allocate(Allocator<TAlloc>& a, size_t size, size_t alignment) {
+  return a.allocate(size, alignment);
+}
+
+/**
+ * @brief Wrapper to call through base class interface.
+ */
+template <typename TAlloc>
+void* call_allocate(Allocator<TAlloc>& a, size_t size) {
+  return a.allocate(size);
+}
+
+/**
+ * @brief Wrapper to call through base class interface.
+ */
+template <typename TAlloc>
+void call_deallocate(Allocator<TAlloc>& a, void* data) {
+  a.deallocate(data);
+}
 
 //
 // Tests
@@ -59,7 +84,7 @@ TEST_CASE("allocate") {
 
   using FooInt = FooT<int>;
 
-  auto memory_block = allocator.allocate(sizeof(FooInt), alignof(FooInt));
+  auto memory_block = call_allocate(allocator, sizeof(FooInt), alignof(FooInt));
 
   // placement new to simulate real code.
   auto foo = new (memory_block) FooInt("Foo42", 42);
@@ -79,16 +104,16 @@ TEST_CASE("allocate_several") {
   using FooInt = FooT<int>;
   using FooN42 = FooNT<std::string, 42>;
 
-  auto memory1 = allocator.allocate(sizeof(FooInt), alignof(FooInt));
+  auto memory1 = call_allocate(allocator, sizeof(FooInt), alignof(FooInt));
   auto foo42 = new (memory1) FooInt("Foo42", 42);
 
-  auto memory2 = allocator.allocate(sizeof(FooN42), alignof(FooN42));
+  auto memory2 = call_allocate(allocator, sizeof(FooN42), alignof(FooN42));
   auto fooN42 = new (memory2) FooN42();
 
-  auto memory3 = allocator.allocate(sizeof(FooInt), alignof(FooInt));
+  auto memory3 = call_allocate(allocator, sizeof(FooInt), alignof(FooInt));
   auto foo42_3 = new (memory3) FooInt("Foo42_3", 423);
 
-  auto memory4 = allocator.allocate(sizeof(FooN42), alignof(FooN42));
+  auto memory4 = call_allocate(allocator, sizeof(FooN42), alignof(FooN42));
   auto fooN42_4 = new (memory4) FooN42();
 
   CHECK_EQ(4, allocator.Tracker().num_blocks());
@@ -115,13 +140,13 @@ TEST_CASE("deallocate") {
 
   using FooInt = FooT<int>;
 
-  auto memory_block = allocator.allocate(sizeof(FooInt), alignof(FooInt));
+  auto memory_block = call_allocate(allocator, sizeof(FooInt), alignof(FooInt));
 
   // placement new to simulate real code.
   auto foo = new (memory_block) FooInt("Foo42", 42);
   foo->~FooT();
 
-  allocator.deallocate(memory_block);
+  call_deallocate(allocator, memory_block);
 
   CHECK_EQ(0, allocator.Tracker().num_blocks());
   CHECK_EQ(0, allocator.Tracker().num_bytes());
@@ -134,29 +159,29 @@ TEST_CASE("deallocate_several") {
   using FooInt = FooT<int>;
   using FooN42 = FooNT<std::string, 42>;
 
-  auto memory1 = allocator.allocate(sizeof(FooInt), alignof(FooInt));
+  auto memory1 = call_allocate(allocator, sizeof(FooInt), alignof(FooInt));
   auto foo42 = new (memory1) FooInt("Foo42", 42);
 
-  auto memory2 = allocator.allocate(sizeof(FooN42), alignof(FooN42));
+  auto memory2 = call_allocate(allocator, sizeof(FooN42), alignof(FooN42));
   auto fooN42 = new (memory2) FooN42();
 
-  auto memory3 = allocator.allocate(sizeof(FooInt), alignof(FooInt));
+  auto memory3 = call_allocate(allocator, sizeof(FooInt), alignof(FooInt));
   auto foo42_3 = new (memory3) FooInt("Foo42_3", 423);
 
-  auto memory4 = allocator.allocate(sizeof(FooN42), alignof(FooN42));
+  auto memory4 = call_allocate(allocator, sizeof(FooN42), alignof(FooN42));
   auto fooN42_4 = new (memory4) FooN42();
 
   foo42->~FooT();
-  allocator.deallocate(memory1);
+  call_deallocate(allocator, memory1);
 
   fooN42->~FooN42();
-  allocator.deallocate(memory2);
+  call_deallocate(allocator, memory2);
 
   foo42_3->~FooT();
-  allocator.deallocate(memory3);
+  call_deallocate(allocator, memory3);
 
   fooN42_4->~FooN42();
-  allocator.deallocate(memory4);
+  call_deallocate(allocator, memory4);
 
   CHECK_EQ(0, allocator.Tracker().num_blocks());
   CHECK_EQ(0, allocator.Tracker().num_bytes());
@@ -169,21 +194,21 @@ TEST_CASE("deallocate_one_of_several") {
   using FooInt = FooT<int>;
   using FooN42 = FooNT<std::string, 42>;
 
-  auto memory1 = allocator.allocate(sizeof(FooInt), alignof(FooInt));
+  auto memory1 = call_allocate(allocator, sizeof(FooInt), alignof(FooInt));
   auto foo42 = new (memory1) FooInt("Foo42", 42);
 
-  auto memory2 = allocator.allocate(sizeof(FooN42), alignof(FooN42));
+  auto memory2 = call_allocate(allocator, sizeof(FooN42), alignof(FooN42));
   auto fooN42 = new (memory2) FooN42();
 
-  auto memory3 = allocator.allocate(sizeof(FooInt), alignof(FooInt));
+  auto memory3 = call_allocate(allocator, sizeof(FooInt), alignof(FooInt));
   auto foo42_3 = new (memory3) FooInt("Foo42_3", 423);
 
-  auto memory4 = allocator.allocate(sizeof(FooN42), alignof(FooN42));
+  auto memory4 = call_allocate(allocator, sizeof(FooN42), alignof(FooN42));
   auto fooN42_4 = new (memory4) FooN42();
 
   // only one out of 4
   fooN42->~FooN42();
-  allocator.deallocate(memory2);
+  call_deallocate(allocator, memory2);
 
   CHECK_EQ(3, allocator.Tracker().num_blocks());
   // 3 instances left - two of one type
@@ -207,15 +232,15 @@ TEST_CASE("allocate_after_deallocate") {
   using FooInt = FooT<int>;
   using FooN42 = FooNT<std::string, 42>;
 
-  auto memory1 = allocator.allocate(sizeof(FooInt), alignof(FooInt));
+  auto memory1 = call_allocate(allocator, sizeof(FooInt), alignof(FooInt));
 
   // placement new to simulate real code.
   auto foo = new (memory1) FooInt("Foo42", 42);
   foo->~FooT();
 
-  allocator.deallocate(memory1);
+  call_deallocate(allocator, memory1);
 
-  auto memory2 = allocator.allocate(sizeof(FooN42), alignof(FooN42));
+  auto memory2 = call_allocate(allocator, sizeof(FooN42), alignof(FooN42));
   auto fooN42 = new (memory2) FooN42();
 
   CHECK_EQ(1, allocator.Tracker().num_blocks());
@@ -232,27 +257,27 @@ TEST_CASE("allocate_after_deallocate_several") {
   using FooInt = FooT<int>;
   using FooN42 = FooNT<std::string, 42>;
 
-  auto memory1 = allocator.allocate(sizeof(FooInt), alignof(FooInt));
+  auto memory1 = call_allocate(allocator, sizeof(FooInt), alignof(FooInt));
   auto foo42 = new (memory1) FooInt("Foo42", 42);
 
-  auto memory2 = allocator.allocate(sizeof(FooN42), alignof(FooN42));
+  auto memory2 = call_allocate(allocator, sizeof(FooN42), alignof(FooN42));
   auto fooN42 = new (memory2) FooN42();
 
-  auto memory3 = allocator.allocate(sizeof(FooInt), alignof(FooInt));
+  auto memory3 = call_allocate(allocator, sizeof(FooInt), alignof(FooInt));
   auto foo42_3 = new (memory3) FooInt("Foo42_3", 423);
 
-  auto memory4 = allocator.allocate(sizeof(FooN42), alignof(FooN42));
+  auto memory4 = call_allocate(allocator, sizeof(FooN42), alignof(FooN42));
   auto fooN42_4 = new (memory4) FooN42();
 
   // deallocations
   fooN42->~FooN42();
-  allocator.deallocate(memory2);
+  call_deallocate(allocator, memory2);
 
   foo42_3->~FooInt();
-  allocator.deallocate(memory3);
+  call_deallocate(allocator, memory3);
 
   // one additional allocation.
-  auto memory5 = allocator.allocate(sizeof(FooInt), alignof(FooInt));
+  auto memory5 = call_allocate(allocator, sizeof(FooInt), alignof(FooInt));
   auto foo42_5 = new (memory5) FooInt("Foo42_5", 425);
 
   // 3 instances - two of one type, one of another

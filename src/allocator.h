@@ -30,8 +30,11 @@ public:
     impl().deallocate(data);
   }
 
-private:
+protected:
+  Allocator() {}  // Don't create the base class.
+  ~Allocator() {} // Don't destroy the base class.
 
+private:
   constexpr TImplementation& impl() {
     return *static_cast<TImplementation*>(this);
   }

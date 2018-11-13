@@ -148,3 +148,6 @@
   - Derived `PassthroughAllocator` from it.
   - Updated `pass_through_allocator-test.cpp` to access the allocator via the base<T>.
   - Works so far.
+  - Verified on OSX, all good.
+  - Extended DiagnosticAllocator to use the CRTP interface class.
+  - Also good, committed.
