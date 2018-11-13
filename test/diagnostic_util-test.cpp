@@ -11,8 +11,15 @@
 
 // Library headers
 #include "doctest.h"
-#include <regex>
-#include <string>
 
 using namespace allok8or;
 
+TEST_CASE("caller_details") {
+  auto file_name = __FILE__;
+  auto line = __LINE__;
+
+  auto details = diagnostic::CallerDetails(file_name, line);
+
+  CHECK_EQ(file_name, details.file_name());
+  CHECK_EQ(line, details.line());
+}
