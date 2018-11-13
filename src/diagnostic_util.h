@@ -9,8 +9,6 @@
 
 // Library headers
 
-
-
 namespace allok8or {
 namespace diagnostic {
 
@@ -35,10 +33,6 @@ private:
   const char* m_file_name;
   const int m_line;
 };
-
-
-
-
 
 } // namespace diagnostic
 } // namespace allok8or
