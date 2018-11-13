@@ -8,6 +8,7 @@
 #include "diagnostic.h"
 
 // Project headers
+#include "allocator_call_helper.h"
 #include "allocator.h"
 #include "align.h"
 #include "pass_through.h"
@@ -17,31 +18,8 @@
 #include <array>
 #include <memory>
 
+
 using namespace allok8or;
-
-/**
- * @brief Wrapper to call through base class interface.
- */
-template <typename TAlloc>
-void* call_allocate(Allocator<TAlloc>& a, size_t size, size_t alignment) {
-  return a.allocate(size, alignment);
-}
-
-/**
- * @brief Wrapper to call through base class interface.
- */
-template <typename TAlloc>
-void* call_allocate(Allocator<TAlloc>& a, size_t size) {
-  return a.allocate(size);
-}
-
-/**
- * @brief Wrapper to call through base class interface.
- */
-template <typename TAlloc>
-void call_deallocate(Allocator<TAlloc>& a, void* data) {
-  a.deallocate(data);
-}
 
 //
 // Tests

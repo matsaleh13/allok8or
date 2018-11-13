@@ -1,24 +1,18 @@
-#include "allocator.h"
-#include "doctest.h"
+/**
+ * @file pass_through_allocator-test.cpp
+ * @brief 
+ */
+
+// My header
 #include "pass_through.h"
 
-/**
- * @brief Wrapper to call through base class interface.
- */
-template <typename TAlloc>
-void* call_allocate(allok8or::Allocator<TAlloc>& a,
-                    size_t size,
-                    size_t alignment) {
-  return a.allocate(size, alignment);
-}
+// Project headers
+#include "allocator_call_helper.h"
+#include "allocator.h"
 
-/**
- * @brief Wrapper to call through base class interface.
- */
-template <typename TAlloc>
-void call_deallocate(allok8or::Allocator<TAlloc>& a, void* data) {
-  a.deallocate(data);
-}
+// Library headers
+#include "doctest.h"
+
 
 TEST_CASE("allocate") {
   allok8or::PassThroughAllocator allocator;
