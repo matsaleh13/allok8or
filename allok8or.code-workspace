@@ -69,7 +69,11 @@
 			"*.tcc": "cpp",
 			"clocale": "cpp",
 			"cstdarg": "cpp",
-			"cwctype": "cpp"
+			"cwctype": "cpp",
+			"locale": "cpp",
+			"regex": "cpp",
+			"xlocbuf": "cpp",
+			"xlocmes": "cpp"
 		}
 	}
 }
