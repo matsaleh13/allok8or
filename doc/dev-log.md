@@ -151,3 +151,9 @@
   - Verified on OSX, all good.
   - Extended DiagnosticAllocator to use the CRTP interface class.
   - Also good, committed.
+- Implemented templated `GlobalAllocator` utility class:
+  - Yes, must access all static members via the fully-qualified templated type.
+  - I figure it won't be too bad tho, because we can create aliases as needed.
+  - Plus, every global use of an allocator will be (most likely) through overloading operator new (global or class), which is really application code at that point. Nothing generic/abstract there.
+  - Implemented basic tests in `global_allocator-test.cpp`.
+  - Builds and tests pass on Windows, w00t.
