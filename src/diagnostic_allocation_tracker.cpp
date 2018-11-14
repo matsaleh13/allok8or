@@ -36,8 +36,8 @@ AllocationTracker::AllocationTracker()
  */
 AllocationTracker::~AllocationTracker() {
   if (m_num_blocks || m_head || m_tail) {
-    LOG_ERROR(L"Detected memory leaks when deleting AllocationTracker "
-              L"[%d]; leaking [%d] bytes.",
+    LOG_ERROR("Detected memory leaks when deleting AllocationTracker "
+              "[%d]; leaking [%d] bytes.",
               m_num_blocks,
               m_num_bytes);
   }

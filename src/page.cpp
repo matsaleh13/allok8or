@@ -61,7 +61,7 @@ PageAllocator::~PageAllocator()
 
   if( m_num_pages )
   {
-    LOG_ERROR( L"Page allocator deleted with allocated pages outstanding [%d], leaking [%d] bytes.", m_num_pages, m_num_pages * m_page_size );
+    LOG_ERROR( "Page allocator deleted with allocated pages outstanding [%d], leaking [%d] bytes.", m_num_pages, m_num_pages * m_page_size );
   }
 }
 
@@ -77,7 +77,7 @@ void* PageAllocator::allocate()
     if( !newPage )
     {
       // OOM
-      LOG_ERROR( L"Failed to allocate new page." );
+      LOG_ERROR( "Failed to allocate new page." );
       return nullptr;
     }
 
