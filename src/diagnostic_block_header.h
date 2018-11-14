@@ -1,5 +1,5 @@
 /**
- * @file diagnostic_header.h
+ * @file diagnostic_block_header.h
  * @brief Memory block header for tracking allocations.
  * 
  */

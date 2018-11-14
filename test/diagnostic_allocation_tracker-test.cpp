@@ -6,7 +6,7 @@
 
 // My header
 #include "diagnostic_allocation_tracker.h"
-#include "diagnostic_header.h"
+#include "diagnostic_block_header.h"
 
 // Project headers
 #include "align.h"

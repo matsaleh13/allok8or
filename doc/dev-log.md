@@ -120,13 +120,13 @@
 - Added tests for BlockHeader::set_caller_details:
   - Currently part of the BlockHeader create test, but that smells wrong.
 - More refactoring:
-  - Moved BlockHeader into `diagnostic_header.h`.
+  - Moved BlockHeader into `diagnostic_block_header.h`.
   - Moved BlockHeader tests in to `diagnostic_header-test.cpp`
   - Renamed `allocation_tracker` to `diagnostic_allocation_tracker`.
   - Bah, names are getting long, but IMO the diagnostic stuff needs to be identified becuase they're all in the same namespace.
 - Even more refactoring, now on OSX:
   - Clang found include issues that MSVS did not, becuase the templates haven't yet been expanded.
-  - Moved the operator* impelementation back to diagnostic_header.h.
+  - Moved the operator* impelementation back to diagnostic_block_header.h.
 - Created separate tests for `set_caller_details`, including a couple negative paths.
 
 ## 2018-11-13
@@ -157,3 +157,7 @@
   - Plus, every global use of an allocator will be (most likely) through overloading operator new (global or class), which is really application code at that point. Nothing generic/abstract there.
   - Implemented basic tests in `global_allocator-test.cpp`.
   - Builds and tests pass on Windows, w00t.
+
+## 2018-11-14
+
+- Renamed `diagnostic_header` to `diagnostic_block_header` everywhere, for consistency with other files.

@@ -9,7 +9,7 @@
 // Project headers
 #include "allocator.h"
 #include "diagnostic_allocation_tracker.h"
-#include "diagnostic_header.h"
+#include "diagnostic_block_header.h"
 
 // Library headers
 #include <cstddef>

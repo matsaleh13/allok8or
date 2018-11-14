@@ -5,7 +5,7 @@
  */
 
 // My header
-#include "diagnostic_header.h"
+#include "diagnostic_block_header.h"
 
 // Project headers
 #include "align.h"
