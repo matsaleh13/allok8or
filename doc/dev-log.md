@@ -161,3 +161,4 @@
 ## 2018-11-14
 
 - Renamed `diagnostic_header` to `diagnostic_block_header` everywhere, for consistency with other files.
+- Found `BlockHeader` implementation code still in `diagnostic_allocation_tracker.cpp`; moved to `diagnostic_block_header.cpp`.
