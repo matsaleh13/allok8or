@@ -108,12 +108,16 @@ constexpr void Logger::log(int level, const char* format, Args... args) {
       constexpr const size_t buf_size = MAX_LOG_BUFFER;
       char buf[buf_size]{'\0'};
 
-// Sadly, this is the only way i can find to avoid this error.
+// Sadly, this is the only way i can find to avoid this error on clang.
+#if defined(__clang__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wformat-security"
+#endif
       const size_t actual_size = std::snprintf(nullptr, 0, format, args...) + 1;
       std::snprintf(buf, actual_size, format, args...);
+#if defined(__clang__)
 #pragma clang diagnostic pop
+#endif
 
       s_log_callback(buf, actual_size);
     }
