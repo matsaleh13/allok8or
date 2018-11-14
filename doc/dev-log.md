@@ -163,3 +163,78 @@
 - Renamed `diagnostic_header` to `diagnostic_block_header` everywhere, for consistency with other files.
 - Found `BlockHeader` implementation code still in `diagnostic_allocation_tracker.cpp`; moved to `diagnostic_block_header.cpp`.
 - Implemented basic logging support.
+- Lots of compiler errors on Clang from the logging stuff:
+  - Basically of the form:
+
+  ```cmake
+
+    [build] /Users/matsaleh/Dev/github/allok8or/src/page.cpp:80:7: error: expected expression
+    [build]       LOG_ERROR( "Failed to allocate new page." );
+    [build]       ^
+    [build] /Users/matsaleh/Dev/github/allok8or/src/logging.h:30:89: note: expanded from macro 'LOG_ERROR'
+    [build] #define LOG_ERROR(message, ...)   allok8or::logging::Logger::log(4, message, __VA_ARGS__)
+    [build]                                                                                         ^
+  ```
+
+  - Random Googling hints that `__VA_OPT__` isn't supported on Clang.
+  - In fact, it seems to be supported only since C++20, but [cppreference.com](https://en.cppreference.com/w/cpp/preprocessor/replace) didn't mention that.
+  - Elsewhere, another page hints that [Clang doesn't support](https://stackoverflow.com/questions/48045470/portably-detect-va-opt-support) it either.
+  - MSVS doesn't seem to care. I didn't even use `__VA_OPT__`, only `__VA_ARGS__` alone, and that worked jsut fine.
+  - I see mentions of an ugly "hack" by GCC to add '##' prefix, i.e. `##__VA_ARGS__`, but I'm not sure that works on clang. Ugh.
+- BTW, I learned that you can show the preprocessor output using the -E option on the command line:
+
+  ```bash
+
+    pearl:allok8or matsaleh$ clang -E src/page.cpp
+
+  ```
+
+- ... which gave me:
+
+  ```c++
+
+  allok8or::logging::Logger::log(4, "Failed to allocate new page." __VA_OPT__(,) );  
+
+  ```
+
+- OK, after testing, it appears that `##__VA_ARGS__` *does* work for both MSVS and Clang, so maybe I'm okay. Damn, wish they'd said so.
+- After that, I got another compiler warning (i.e. error with `-Wall -Werror`):
+
+  ```cmake
+
+    [build] In file included from /Users/matsaleh/Dev/github/allok8or/src/page.cpp:6:
+    [build] /Users/matsaleh/Dev/github/allok8or/src/logging.h:107:60: error: format string is not a string literal (potentially insecure) [-Werror,-Wformat-security]
+    [build]       const size_t actual_size = std::snprintf(nullptr, 0, format, args...) + 1;
+    [build]                                                            ^~~~~~
+    [build] /Users/matsaleh/Dev/github/allok8or/src/page.cpp:80:7: note: in instantiation of function template specialization 'allok8or::logging::Logger::log<>' requested here
+    [build]       LOG_ERROR( "Failed to allocate new page." );
+    [build]       ^
+    [build] /Users/matsaleh/Dev/github/allok8or/src/logging.h:31:3: note: expanded from macro 'LOG_ERROR'
+    [build]   LOG(allok8or::logging::Logger::error, message, ##__VA_ARGS__)
+    [build]   ^
+    [build] /Users/matsaleh/Dev/github/allok8or/src/logging.h:19:30: note: expanded from macro 'LOG'
+    [build]   allok8or::logging::Logger::log(level, message, ##__VA_ARGS__)
+    [build]                              ^
+    [build] /Users/matsaleh/Dev/github/allok8or/src/logging.h:107:60: note: treat the string as an argument to avoid this
+    [build]       const size_t actual_size = std::snprintf(nullptr, 0, format, args...) + 1;
+    [build]                                                            ^
+    [build]                                                            "%s", 
+
+  ```
+
+  - Got some help for this in the [Clang docs](http://clang.llvm.org/docs/AttributeReference.html#format-gnu-format).
+  - Led there by this SO thread [Correcting “format string is not a string literal” warning](https://stackoverflow.com/questions/36120717/correcting-format-string-is-not-a-string-literal-warning).
+  - However, none of that advice actually fixed *my* error.
+  - The most common advice is to pass the string variable through "%s", but that doesn't help me, becuase in my case the variable *is* a format string.
+  - Ended up working around the issue with a local #pragma ignore:
+
+    ```c++
+
+      // Sadly, this is the only way i can find to avoid this error.
+      #pragma clang diagnostic push
+      #pragma clang diagnostic ignored "-Wformat-security"
+            const size_t actual_size = std::snprintf(nullptr, 0, format, args...) + 1;
+            std::snprintf(buf, actual_size, format, args...);
+      #pragma clang diagnostic pop
+
+    ```

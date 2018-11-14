@@ -9,25 +9,26 @@
 
 // Library headers
 #include <cstddef>
+#include <cstdio>
 #include <functional>
 
 //
 // Macros
 //
 #define LOG(level, message, ...)                                               \
-  allok8or::logging::Logger::log(level, message, __VA_ARGS__)
+  allok8or::logging::Logger::log(level, message, ##__VA_ARGS__)
 #define LOG_RAW(message, ...)                                                  \
-  LOG(allok8or::logging::Logger::raw, message, __VA_ARGS__)
+  LOG(allok8or::logging::Logger::raw, message, ##__VA_ARGS__)
 #define LOG_TRACE(message, ...)                                                \
-  LOG(allok8or::logging::Logger::trace, message, __VA_ARGS__)
+  LOG(allok8or::logging::Logger::trace, message, ##__VA_ARGS__)
 #define LOG_DEBUG(message, ...)                                                \
-  LOG(allok8or::logging::Logger::debug, message, __VA_ARGS__)
+  LOG(allok8or::logging::Logger::debug, message, ##__VA_ARGS__)
 #define LOG_INFO(message, ...)                                                 \
-  LOG(allok8or::logging::Logger::info, message, __VA_ARGS__)
+  LOG(allok8or::logging::Logger::info, message, ##__VA_ARGS__)
 #define LOG_WARNING(message, ...)                                              \
-  LOG(allok8or::logging::Logger::warning, message, __VA_ARGS__)
+  LOG(allok8or::logging::Logger::warning, message, ##__VA_ARGS__)
 #define LOG_ERROR(message, ...)                                                \
-  LOG(allok8or::logging::Logger::error, message, __VA_ARGS__)
+  LOG(allok8or::logging::Logger::error, message, ##__VA_ARGS__)
 
 namespace allok8or {
 namespace logging {
@@ -98,13 +99,21 @@ bool Logger::register_callback(LogFunc log_func) {
  * @param args Variadic function args to pass to the format string.
  */
 template <typename... Args>
+// __attribute__((__format__(__printf__, 3, 0)))
+// Intended to address error: format string is not a string literal (potentially
+// insecure) [-Werror,-Wformat-security] but it does not.
 constexpr void Logger::log(int level, const char* format, Args... args) {
   if (s_log_callback) {
     if (level == Logger::raw || level >= Logger::s_level) {
       constexpr const size_t buf_size = MAX_LOG_BUFFER;
-      char buf[buf_size];
+      char buf[buf_size]{'\0'};
+
+// Sadly, this is the only way i can find to avoid this error.
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wformat-security"
       const size_t actual_size = std::snprintf(nullptr, 0, format, args...) + 1;
       std::snprintf(buf, actual_size, format, args...);
+#pragma clang diagnostic pop
 
       s_log_callback(buf, actual_size);
     }
