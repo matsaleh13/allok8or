@@ -10,7 +10,7 @@
 - Continued project config with CMake.
 - Researched using CTest with [doctest.h](https://github.com/onqtam/doctest).
 - Implemented align.h with utils for alignment supporting operations.
-- Implemented first tests, for aligh.h, using doctest.h.
+- Implemented first tests, for align.h, using doctest.h.
 - All tests pass; committed.
 - Implemented PageAllocator in page.h/cpp.
 - Also tests for PageAllocator.
@@ -26,7 +26,7 @@
 - Got project to build on OS X with clang:
   - Minor changes to compiler settings to back off pedantic/extra warnings in "strict" mode.
   - Removed invalid uses of `constexpr` that clang caught but MSVS did not.
-  - Platform-specific implmementations of aligned malloc.
+  - Platform-specific implementations of aligned malloc.
   - Other minor platform-specific tweaks.
 - Back on Windows, got it all building correctly again (not much more to do):
   - However, the VS Code intellisense thingy reported red squigglies in `pass_through.h` under `namespace allok8or`, with the message:
@@ -238,3 +238,19 @@
       #pragma clang diagnostic pop
 
     ```
+
+## 2018-11-15
+
+- Starting to think about how to do the tracking of BlockHeaders so I can generate metrics about them (e.g. total allocations by type):
+  - Requirement: Some kind of mapping data structure to associate string "type" to a collection of BlockHeader instances.
+  - Requirement: Calculate count/sum of allocations and bytes by "type". <= O(n) for that (where n is instances of a single type).
+  - Requirement: Iterate over types to get their associated values; possibly sorting.
+  - Requirement: O(1) insert/remove/access.
+  - Constraint: Avoid using global new/delete, implicitly, in case we end up in some kind of recursion. We are writing an allocator here, and users are almost certain to overload global new/delete.
+  - Option: Implement a bare-bones custom associative array type thing and make all calls to malloc/free explicit.
+  - Option: Keep a running count/total of allocations for each type. This eliminates the need for a list per type, but not the need for a mapping by type.
+  - Option: Use std::unordered_map with a custom std::allocator that controls access to new/malloc/delete/free. IMO this could be ideal, because we want a std::allocator adapter anyway.
+- I'll start by writing the std::allocator adapter:
+  - Found a good starting point: [Allocator Boilerplate](https://howardhinnant.github.io/allocator_boilerplate.html).
+  - In this case, we'll add another template param for an allok8or::Allocator-derived class.
+  
