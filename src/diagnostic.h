@@ -17,13 +17,14 @@
 namespace allok8or {
 
 /**
- * DiagnosticAllocator
- *
- * An allocator that tracks net allocations for the purpose of identifying
- * memory leaks.
+ * @brief An allocator that tracks net allocations for the purpose of
+ * identifying memory leaks.
  *
  * This allocator does not itself manage allocated memory. Rather, another
  * allocator passed in as a ctor argument does that.
+ *
+ * @tparam TAllocator Type of the backing allocator; must be an
+ * allok8or::Allocator-defived class.
  */
 template <typename TAllocator>
 class DiagnosticAllocator : public Allocator<DiagnosticAllocator<TAllocator>> {
@@ -44,12 +45,13 @@ private:
 
 /**
  * @brief Constructor
- * 
- * @tparam TAllocator Type of the backing allocator. 
+ *
+ * @tparam TAllocator Type of the backing allocator.
  * @param allocator The backing allocator to actually allocate/deallocate heap
  */
 template <typename TAllocator>
-DiagnosticAllocator<TAllocator>::DiagnosticAllocator(Allocator<TAllocator>& allocator)
+DiagnosticAllocator<TAllocator>::DiagnosticAllocator(
+    Allocator<TAllocator>& allocator)
     : m_allocator(allocator) {}
 
 /**
