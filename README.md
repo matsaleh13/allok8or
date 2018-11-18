@@ -23,4 +23,4 @@ A collection of memory allocators for game development and general purpose appli
 ## Related Documents
 
 - [Dev log](./doc/dev-log.md)
-- [TODO](./doc/toto.md)
+- [TODO](./doc/todo.md)
