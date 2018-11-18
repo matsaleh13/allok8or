@@ -40,3 +40,16 @@ TEST_CASE("deallocate") {
 
   // What to test, really? Make sure it links.
 }
+
+TEST_CASE("compare_equal") {
+  allok8or::PassThroughAllocator allocator1 ;
+  allok8or::PassThroughAllocator allocator2;
+
+  SUBCASE("same_instance_compares_equal") {
+    CHECK_EQ(allocator1, allocator1);
+  }
+
+  SUBCASE("different_instances_compare_equal") {
+    CHECK_EQ(allocator1, allocator2);
+  }
+}

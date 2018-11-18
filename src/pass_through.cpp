@@ -13,9 +13,7 @@ namespace allok8or {
  */
 void* PassThroughAllocator::allocate(
     size_t bytes, size_t alignment /*= alignof( std::max_align_t ) */) {
-  auto memory = memory::aligned_malloc(bytes, alignment);
-
-  return memory;
+  return memory::aligned_malloc(bytes, alignment);
 }
 
 /**

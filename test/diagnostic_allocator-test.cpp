@@ -8,16 +8,15 @@
 #include "diagnostic.h"
 
 // Project headers
-#include "allocator_call_helper.h"
-#include "allocator.h"
 #include "align.h"
+#include "allocator.h"
+#include "allocator_call_helper.h"
 #include "pass_through.h"
 
 // Library headers
 #include "doctest.h"
 #include <array>
 #include <memory>
-
 
 using namespace allok8or;
 
@@ -271,4 +270,23 @@ TEST_CASE("allocate_after_deallocate_several") {
 
   CHECK_EQ("Foo42_5", foo42_5->m_name);
   CHECK_EQ(425, foo42_5->m_data);
+}
+
+TEST_CASE("compare_equal") {
+  PassThroughAllocator pass_through1;
+  DiagnosticAllocator<PassThroughAllocator> allocator1(pass_through1);
+
+  PassThroughAllocator pass_through2;
+  DiagnosticAllocator<PassThroughAllocator> allocator2(pass_through2);
+
+  SUBCASE("same_instance_compares_equal") {
+    CHECK_EQ(allocator1, allocator1);
+  }
+
+  SUBCASE("different_instances_compare_unequal") {
+    CHECK_NE(allocator1, allocator2);
+  }
+
+
+
 }

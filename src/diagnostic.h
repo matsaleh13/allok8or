@@ -43,6 +43,18 @@ private:
   diagnostic::AllocationTracker m_tracker;
 };
 
+template <typename TAllocator>
+constexpr bool operator==(const DiagnosticAllocator<TAllocator>& lhs,
+                          const DiagnosticAllocator<TAllocator>& rhs) {
+  return &lhs == &rhs;
+}
+
+template <typename TAllocator>
+constexpr bool operator!=(const DiagnosticAllocator<TAllocator>& lhs,
+                          const DiagnosticAllocator<TAllocator>& rhs) {
+  return !(&lhs == &rhs);
+}
+
 /**
  * @brief Constructor
  *

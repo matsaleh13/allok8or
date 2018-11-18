@@ -19,7 +19,7 @@ namespace allok8or {
  */
 class PassThroughAllocator : public Allocator<PassThroughAllocator> {
 public:
-  PassThroughAllocator(){};
+  constexpr PassThroughAllocator(){};
   ~PassThroughAllocator(){};
 
   // Public API
@@ -27,5 +27,26 @@ public:
   void deallocate(void* page);
 };
 
+/**
+ * @brief Equality test. Because PassThroughAllocator is stateless, all are equal.
+ * 
+ * @return true Always
+ * @return false Never
+ */
+constexpr bool operator==(const PassThroughAllocator& lhs,
+                          const PassThroughAllocator& rhs) {
+  return true;
+}
+
+/**
+ * @brief Inquality test. Because PassThroughAllocator is stateless, none are unqual.
+ * 
+ * @return true Never
+ * @return false Always
+ */
+constexpr bool operator!=(const PassThroughAllocator& lhs,
+                          const PassThroughAllocator& rhs) {
+  return false;
+}
 
 } // namespace allok8or

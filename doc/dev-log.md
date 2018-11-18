@@ -253,4 +253,14 @@
 - I'll start by writing the std::allocator adapter:
   - Found a good starting point: [Allocator Boilerplate](https://howardhinnant.github.io/allocator_boilerplate.html).
   - In this case, we'll add another template param for an allok8or::Allocator-derived class.
+
+## 2018-11-17
+
+- Continuing with the std::allocator adapter:
+  - Added operator== and operator!= to allok8or::Allocator, because it's required by std::allocator.
+
+## 2018-11-18
+
+- StdAllocatorAdapter continued:
+  - Added tests for operator== and operator!= to allok8or::Allocator, DiagnosticAllocator, and PassThroughAllocator.
   
