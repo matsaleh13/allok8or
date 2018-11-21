@@ -13,6 +13,9 @@ struct PageHeader;
  * Responsible for requesting memory pages from the system heap so that 
  * other allocator types can use them as backing memory. 
  *
+ * NOTE: This allocator contains state that should be shared and NOT duplicated if the
+ * allocator is copied. TODO: still working on that.
+ *
  * TODO: Not thread safe.
  */
 class PageAllocator
