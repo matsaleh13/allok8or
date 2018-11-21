@@ -40,13 +40,6 @@ public:
   std::array<T, N> m_data;
 };
 
-template <typename T>
-class BarT : FooNT<BarT<T>, 3> {
-public:
-  BarT(const std::string& name) : m_name(name) {}
-  std::string m_name;
-};
-
 TEST_CASE("create") {
   PassThroughAllocator pass_through;
   DiagnosticAllocator<PassThroughAllocator> allocator(pass_through);
