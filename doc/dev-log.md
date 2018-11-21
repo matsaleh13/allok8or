@@ -264,3 +264,20 @@
 - StdAllocatorAdapter continued:
   - Added tests for operator== and operator!= to allok8or::Allocator, DiagnosticAllocator, and PassThroughAllocator.
   
+## 2018-11-20
+
+- StdAllocatorAdapter continued:
+  - Implemented `std_allocator_adapter-test.cpp`.
+  - Added tests for API with `PassThroughAllocator` as the backing allocator.
+  - Added test using `StdAllocatorAdapter` with `std::map`.
+  - Discovered I needed to make the `allocate` and `deallocate` methods const, because `StdAllocatorAdapter` is stateful (i.e. internal backing allocator), and its internal reference must be const. This is probably okay, except that it requires *all* internal state (including nested state) to either be const or mutable. This includes things like the `AllocationTracker` inside the `DiagnosticAllocator` must be mutable, which is pretty heavyweight. So far so good, because mutable semantics are preserved (i.e. external state of allocator is still const), but I'm a little wary of downstream impacts.
+  - Also discovered that `std::allocator` requires that the allocator be copy-constructible, move-constructible, and copy-assignable. That makes stateful allocator implementation tricky. Again, in the case of the `DiagnosticAllocator`, I need to somehow manage the fact that there would be a shared `AllocationTracker` between the copies. That means synchronization and lifetime management that I'd rather not *have* to do.
+  - Still WIP, iterating on tests.
+
+## 2018-11-21
+
+- StdAllocatorAdapter continued:
+  - Got all tests working.
+  - Would like better tests for deallocate and allocate_array, but that would probably require intrusive marking of the raw memory buffer. Not ready to do that.
+
+
