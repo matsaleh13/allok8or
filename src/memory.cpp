@@ -16,22 +16,22 @@ namespace allok8or {
 namespace memory {
 
 void* aligned_malloc(size_t size, size_t align) {
-  void* result;
+  void* memory;
 #ifdef _MSC_VER
-  result = _aligned_malloc(size, align);
+  memory = _aligned_malloc(size, align);
 #else
-  if (posix_memalign(&result, align, size)) {
-    result = 0;
+  if (posix_memalign(&memory, align, size)) {
+    memory = nullptr;
   }
 #endif
-  return result;
+  return memory;
 }
 
-void aligned_free(void* ptr) {
+void aligned_free(void* memory) {
 #ifdef _MSC_VER
-  _aligned_free(ptr);
+  _aligned_free(memory);
 #else
-  free(ptr);
+  free(memory);
 #endif
 }
 } // namespace memory
