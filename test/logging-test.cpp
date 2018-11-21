@@ -19,13 +19,18 @@ using namespace allok8or;
 // Tests
 //
 
+// TODO: full coverage for all log levels (refactor into function).
+
 TEST_CASE("logging") {
 
   auto format_string = "Formatting numbers: [%d] [%0.3f] [%08x], string: [%s]";
   auto formatted_string =
       "Formatting numbers: [42] [42.420] [00000042], string: [hello world]";
 
+  // String to hold log result.
   std::string test_message;
+
+  // Lambda callback.
   auto log_callback = [&](const char* message, size_t size) {
     test_message = {message, size - 1};
   };
