@@ -25,7 +25,7 @@
 
 - Got project to build on OS X with clang:
   - Minor changes to compiler settings to back off pedantic/extra warnings in "strict" mode.
-  - Removed invalid uses of `constexpr` that clang caught but MSVS did not.
+  - Removed invalid uses of ``constexpr`` that clang caught but MSVS did not.
   - Platform-specific implementations of aligned malloc.
   - Other minor platform-specific tweaks.
 - Back on Windows, got it all building correctly again (not much more to do):
@@ -33,7 +33,7 @@
     ```c++
     expected ';' after top level declarator
     ```
-  - I recalled that I'd updated my VS Code extensions on OS X to add the vscode-clangd extension. Some googles told me this error was related to that, so I disabled it on Windows.
+  - I recalled that I'd updated my VS Code extensions on OS X to add the `vscode-clangd` extension. Some googles told me this error was related to that, so I disabled it on Windows.
   - That got rid of the squigglies. Is clang not playing nicely with MSVS on Windows?
 
 ## 2018-11-07
@@ -64,7 +64,7 @@
   - In spite of web info to the contrary, it seems `__FUNCTIION__` isn't defined by clang (on OSX High Sierra, on my machine, anyway).
   - The oversized value for array size was a negative value assigned to a size_t and overflowing (a reminder about the dangers of unsigned int).
   - Fixed by defining custom macro `ALK8_PRETTY_FUNCTION` and set to either `__FUNCTION__` or `__PRETTY_FUNCTION__` based on compiler defines.
-- Another clang error, but another case of implementation-specific include depenencies:
+- Another clang error, but another case of implementation-specific include dependencies:
 
   ```cmake
     build] /Users/matsaleh/Dev/github/allok8or/src/diagnostic_util.h:37:5: error: call to function 'memcpy' that is neither visible in the template definition nor found by argument-dependent lookup
@@ -79,13 +79,13 @@
 - Looks like __PRETTY_FUNCTION__ has *two* occurrences of the type name in it:
   - That changes the entire approach. 
   - Now, instead of having a constant prefix and suffix length, we have no way to know how far to walk the string to find the end of the token we're looking for.
-  - That means we can't use a constexpr method. Boo.
+  - That means we can't use a `constexpr` method. Boo.
   - Gonna let this stew overnight.
 
 ## 2018-11-10
 
 - Finally got TypeNameHelper working on Clang:
-  - Preserved constexpr by adding a method that takes the __*FUNCTION__ string and a `start` and `end` pointer as OUT params. That way, no need to declare local vars.
+  - Preserved `constexpr` by adding a method that takes the __*FUNCTION__ string and a `start` and `end` pointer as OUT params. That way, no need to declare local vars.
   - Refactored to minimize the amount of compiler-specific code.
 - Meanwhile, back in MSVS, we have new test errors:
   - First, forgot to init `start` so overflowed the array size argument.
@@ -95,11 +95,11 @@
 ## 2018-11-11
 
 - Still working on getting TypeNameHelper and tests to work on MSVS:
-  - Regex matching is kind of a PITA becuase of how `__FUNCTION__` and `__PRETTY_FUNCTION__` differ.
+  - Regex matching is kind of a PITA because of how `__FUNCTION__` and `__PRETTY_FUNCTION__` differ.
   - Eventually decided to relax the patterns a bit until the tests work. We just have to get close IMO.
   - Ready to commit and test again on Clang.
 - Got the array size template to work on Clang too, surprisingly: 
-  - Need to refresh my memory on how that works, because I thought a non-literal const char* string wouldn't do it.
+  - Need to refresh my memory on how that works, because I thought a non-literal `const char*` string wouldn't do it.
   - Tests work too, w00t.
 - Implemented tests for DiagnosticAllocator:
   - Fixed compile errors from template instantiations.
@@ -111,7 +111,7 @@
 
 - Moved TypeNameHelper and tests into their own header/cpp files:
   - Built and re-ran tests on Windows, all good.
-  - Committed and synced on OSX, and got build errors with clang, becuase I'd forgotten to `#include "type_name_helper.h"` from `allocation_tracker.h`. WTF didn't that show up in MSVS?
+  - Committed and synced on OSX, and got build errors with clang, because I'd forgotten to `#include "type_name_helper.h"` from `allocation_tracker.h`. WTF didn't that show up in MSVS?
   - Fixed and committed again.
 - A bit of refactoring:
   - Moved the magic macro out of `diagnostic_util.h` and into it's own header, `diagnostic_new.h`. Probably will overload operator new there too.
@@ -123,10 +123,10 @@
   - Moved BlockHeader into `diagnostic_block_header.h`.
   - Moved BlockHeader tests in to `diagnostic_header-test.cpp`
   - Renamed `allocation_tracker` to `diagnostic_allocation_tracker`.
-  - Bah, names are getting long, but IMO the diagnostic stuff needs to be identified becuase they're all in the same namespace.
+  - Bah, names are getting long, but IMO the diagnostic stuff needs to be identified because they're all in the same namespace.
 - Even more refactoring, now on OSX:
-  - Clang found include issues that MSVS did not, becuase the templates haven't yet been expanded.
-  - Moved the operator* impelementation back to diagnostic_block_header.h.
+  - Clang found include issues that MSVS did not, because the templates haven't yet been expanded.
+  - Moved the operator* implementation back to diagnostic_block_header.h.
 - Created separate tests for `set_caller_details`, including a couple negative paths.
 
 ## 2018-11-13
@@ -179,7 +179,7 @@
   - Random Googling hints that `__VA_OPT__` isn't supported on Clang.
   - In fact, it seems to be supported only since C++20, but [cppreference.com](https://en.cppreference.com/w/cpp/preprocessor/replace) didn't mention that.
   - Elsewhere, another page hints that [Clang doesn't support](https://stackoverflow.com/questions/48045470/portably-detect-va-opt-support) it either.
-  - MSVS doesn't seem to care. I didn't even use `__VA_OPT__`, only `__VA_ARGS__` alone, and that worked jsut fine.
+  - MSVS doesn't seem to care. I didn't even use `__VA_OPT__`, only `__VA_ARGS__` alone, and that worked just fine.
   - I see mentions of an ugly "hack" by GCC to add '##' prefix, i.e. `##__VA_ARGS__`, but I'm not sure that works on clang. Ugh.
 - BTW, I learned that you can show the preprocessor output using the -E option on the command line:
 
@@ -225,7 +225,7 @@
   - Got some help for this in the [Clang docs](http://clang.llvm.org/docs/AttributeReference.html#format-gnu-format).
   - Led there by this SO thread [Correcting “format string is not a string literal” warning](https://stackoverflow.com/questions/36120717/correcting-format-string-is-not-a-string-literal-warning).
   - However, none of that advice actually fixed *my* error.
-  - The most common advice is to pass the string variable through "%s", but that doesn't help me, becuase in my case the variable *is* a format string.
+  - The most common advice is to pass the string variable through "%s", but that doesn't help me, because in my case the variable *is* a format string.
   - Ended up working around the issue with a local #pragma ignore:
 
     ```c++
