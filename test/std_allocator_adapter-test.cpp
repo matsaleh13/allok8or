@@ -9,7 +9,9 @@
 // Project headers
 #include "allocator.h"
 #include "allocator_call_helper.h"
+#include "diagnostic.h"
 #include "pass_through.h"
+
 
 // Library headers
 #include "doctest.h"
@@ -46,7 +48,6 @@ bool operator==(const BarT<T>& lhs, const BarT<T>& rhs) {
   return lhs.m_data == rhs.m_data;
 }
 
-
 using namespace allok8or;
 
 TEST_CASE("allocate") {
@@ -65,8 +66,8 @@ TEST_CASE("allocate_array") {
       internal_allocator);
 
   auto count = 32;
-  auto memory = allocator.allocate(count); // multiple objects
-  CHECK_EQ(sizeof(memory[0]), sizeof(BarT<double>));    // TODO: better test?
+  auto memory = allocator.allocate(count);           // multiple objects
+  CHECK_EQ(sizeof(memory[0]), sizeof(BarT<double>)); // TODO: better test?
 }
 
 TEST_CASE("deallocate") {
@@ -76,7 +77,7 @@ TEST_CASE("deallocate") {
 
   auto memory = allocator.allocate(1); // one object only
   allocator.deallocate(memory, 0);
-  CHECK_NE(memory, nullptr);  // What to test, really? Make sure it links.
+  CHECK_NE(memory, nullptr); // What to test, really? Make sure it links.
 }
 
 TEST_CASE("deallocate_array") {
@@ -108,13 +109,49 @@ TEST_CASE("compare_with_pass_through") {
   }
 }
 
-TEST_CASE("with_std_map") {
+TEST_CASE("std_map_with_pass_through") {
   PassThroughAllocator internal_allocator;
   using DoubleBar = BarT<double>;
   using TestMapValueType = std::pair<const int, DoubleBar>;
   using TestAllocator =
       StdAllocatorAdapter<TestMapValueType, PassThroughAllocator>;
   TestAllocator allocator(internal_allocator);
+
+  std::map<int, DoubleBar, std::less<int>, TestAllocator> test_map(allocator);
+
+  DoubleBar db1, db2, db3;
+  db1.m_data.fill(0.42);
+  db2.m_data.fill(42.0);
+  db3.m_data.fill(0);
+
+  test_map[0] = db1;
+  test_map[42] = db2;
+  test_map[4200] = db3;
+
+  CHECK_EQ(3, test_map.size());
+
+  CHECK_EQ(db1, test_map.find(0)->second);
+  CHECK_EQ(db1, test_map[0]);
+
+  CHECK_EQ(db2, test_map.find(42)->second);
+  CHECK_EQ(db2, test_map[42]);
+
+  CHECK_EQ(db3, test_map.find(4200)->second);
+  CHECK_EQ(db3, test_map[4200]);
+
+  CHECK_EQ(test_map.end(), test_map.find(7));
+}
+
+TEST_CASE("std_map_with_diagnostic") {
+  using BackingAllocatorType = DiagnosticAllocator<PassThroughAllocator>;
+  using DoubleBar = BarT<double>;
+  using TestMapValueType = std::pair<const int, DoubleBar>;
+  using TestAllocator =
+      StdAllocatorAdapter<TestMapValueType, BackingAllocatorType>;
+  
+  PassThroughAllocator internal_allocator;
+  BackingAllocatorType backing_allocator(internal_allocator);
+  TestAllocator allocator(backing_allocator);;
 
   std::map<int, DoubleBar, std::less<int>, TestAllocator> test_map(allocator);
 
