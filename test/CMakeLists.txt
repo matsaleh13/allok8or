@@ -53,3 +53,7 @@ target_link_libraries(global_allocator-test allok8or-core)
 add_executable(logging-test logging-test.cpp $<TARGET_OBJECTS:allok8or-test>)
 add_test(NAME logging-test COMMAND logging-test)
 target_link_libraries(logging-test allok8or-core)
+
+add_executable(std_allocator_adapter-test std_allocator_adapter-test.cpp $<TARGET_OBJECTS:allok8or-test>)
+add_test(NAME std_allocator_adapter-test COMMAND std_allocator_adapter-test)
+target_link_libraries(std_allocator_adapter-test allok8or-core)
