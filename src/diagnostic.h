@@ -23,8 +23,8 @@ namespace allok8or {
  * This allocator does not itself manage allocated memory. Rather, another
  * allocator passed in as a ctor argument does that.
  *
- * NOTE: This allocator contains state that should be shared and NOT duplicated if the
- * allocator is copied. TODO: still working on that.
+ * NOTE: This allocator contains state that should be shared and NOT duplicated
+ * if the allocator is copied. TODO: still working on that.
  *
  * @tparam TAllocator Type of the backing allocator; must be an
  * allok8or::Allocator-defived class.
@@ -70,6 +70,24 @@ template <typename TAllocator>
 DiagnosticAllocator<TAllocator>::DiagnosticAllocator(
     Allocator<TAllocator>& allocator)
     : m_allocator(allocator) {}
+
+/**
+ * @brief Gets memory from the backing allocator using default alignment and
+ * returns a pointer to the user portion.
+ *
+ * NOTE: Allocates enough extra memory to hold the data used for tracking and
+ * detecting leaks. The pointer returned to the caller is the starting address
+ * of the user portion of the memory block.
+ *
+ * @tparam TAllocator Type of the backing allocator.
+ * @param user_data_size The size of the memory requested by the caller.
+ * @return void* Pointer to the user portion of the memory.
+ */
+template <typename TAllocator>
+void* allok8or::DiagnosticAllocator<TAllocator>::allocate(
+    size_t user_data_size) const {
+  return allocate(user_data_size, alignof(std::max_align_t));
+}
 
 /**
  * @brief Gets memory from the backing allocator and returns a pointer to the
