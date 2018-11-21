@@ -16,15 +16,16 @@ namespace allok8or {
 /**
  * @brief Allocator that acts as a proxy to the system allocator.
  *
+ * NOTE: This allocator is stateless, so every instance is considered equal to every other.
  */
 class PassThroughAllocator : public Allocator<PassThroughAllocator> {
 public:
-  constexpr PassThroughAllocator(){};
+  constexpr PassThroughAllocator() = default;
   ~PassThroughAllocator(){};
 
   // Public API
-  void* allocate(size_t bytes, size_t alignment = alignof(std::max_align_t));
-  void deallocate(void* page);
+  void* allocate(size_t bytes, size_t alignment = alignof(std::max_align_t)) const;
+  void deallocate(void* user_data) const;
 };
 
 /**

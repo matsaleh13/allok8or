@@ -12,14 +12,14 @@ namespace allok8or {
  * Request memory from the system heap.
  */
 void* PassThroughAllocator::allocate(
-    size_t bytes, size_t alignment /*= alignof( std::max_align_t ) */) {
+    size_t bytes, size_t alignment /*= alignof( std::max_align_t ) */) const {
   return memory::aligned_malloc(bytes, alignment);
 }
 
 /**
  * Returns memory to the system heap.
  */
-void PassThroughAllocator::deallocate(void* memory) {
+void PassThroughAllocator::deallocate(void* memory) const {
   memory::aligned_free(memory);
 }
 

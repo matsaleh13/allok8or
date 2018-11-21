@@ -23,6 +23,9 @@ namespace allok8or {
  * This allocator does not itself manage allocated memory. Rather, another
  * allocator passed in as a ctor argument does that.
  *
+ * NOTE: This allocator contains state that should be shared and NOT duplicated if the
+ * allocator is copied. TODO: still working on that.
+ *
  * @tparam TAllocator Type of the backing allocator; must be an
  * allok8or::Allocator-defived class.
  */
@@ -32,15 +35,17 @@ public:
   DiagnosticAllocator(Allocator<TAllocator>& allocator);
   ~DiagnosticAllocator(){};
 
-  void* allocate(size_t size);
-  void* allocate(size_t size, size_t alignment);
-  void deallocate(void* user_data);
+  void* allocate(size_t size) const;
+  void* allocate(size_t size, size_t alignment) const;
+  void deallocate(void* user_data) const;
 
   const diagnostic::AllocationTracker& Tracker() const { return m_tracker; }
 
 private:
   Allocator<TAllocator>& m_allocator;
-  diagnostic::AllocationTracker m_tracker;
+  mutable diagnostic::AllocationTracker
+      m_tracker; // mutable required because all Allocator<T>-derived classes
+                 // must have const API.
 };
 
 template <typename TAllocator>
@@ -81,7 +86,7 @@ DiagnosticAllocator<TAllocator>::DiagnosticAllocator(
  */
 template <typename TAllocator>
 void* allok8or::DiagnosticAllocator<TAllocator>::allocate(
-    size_t user_data_size, size_t user_data_alignment) {
+    size_t user_data_size, size_t user_data_alignment) const {
   auto aligned_user_data_size =
       align::get_aligned_size(user_data_size, user_data_alignment);
   auto total_size = aligned_user_data_size +
@@ -116,7 +121,7 @@ void* allok8or::DiagnosticAllocator<TAllocator>::allocate(
  * deallocate.
  */
 template <typename TAllocator>
-void DiagnosticAllocator<TAllocator>::deallocate(void* user_data) {
+void DiagnosticAllocator<TAllocator>::deallocate(void* user_data) const {
   diagnostic::BlockHeader* header =
       diagnostic::BlockHeader::get_header(user_data);
   assert(header->user_data() == user_data);

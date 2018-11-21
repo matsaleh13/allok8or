@@ -18,13 +18,13 @@ namespace allok8or {
 template <typename TImplementation>
 class Allocator {
 public:
-  constexpr void* allocate(size_t size) { return impl().allocate(size); }
+  constexpr void* allocate(size_t size) const { return impl().allocate(size); }
 
-  constexpr void* allocate(size_t size, size_t alignment) {
+  constexpr void* allocate(size_t size, size_t alignment) const {
     return impl().allocate(size, alignment);
   }
 
-  constexpr void deallocate(void* data) { impl().deallocate(data); }
+  constexpr void deallocate(void* data) const { impl().deallocate(data); }
 
 protected:
   constexpr Allocator() {}  // Don't create the base class.
@@ -39,20 +39,24 @@ private:
     return *static_cast<const TImplementation*>(this);
   }
 
-  friend constexpr bool operator==(const Allocator<TImplementation>& lhs,
-                          const Allocator<TImplementation>& rhs);
+template <typename F_TImplementation>
+  friend constexpr bool operator==(const Allocator<F_TImplementation>& lhs,
+                          const Allocator<F_TImplementation>& rhs);
 
-  friend constexpr bool operator!=(const Allocator<TImplementation>& lhs,
-                          const Allocator<TImplementation>& rhs);
+template <typename F_TImplementation>
+  friend constexpr bool operator!=(const Allocator<F_TImplementation>& lhs,
+                          const Allocator<F_TImplementation>& rhs);
 };
 
 template <typename TImplementation>
+inline
 constexpr bool operator==(const Allocator<TImplementation>& lhs,
                           const Allocator<TImplementation>& rhs) {
   return lhs.impl() == rhs.impl();
 }
 
 template <typename TImplementation>
+inline
 constexpr bool operator!=(const Allocator<TImplementation>& lhs,
                           const Allocator<TImplementation>& rhs) {
   return lhs.impl() != rhs.impl();
