@@ -34,8 +34,8 @@ public:
  * @return true Always
  * @return false Never
  */
-constexpr bool operator==(const PassThroughAllocator& lhs,
-                          const PassThroughAllocator& rhs) {
+constexpr bool operator==(const PassThroughAllocator&,
+                          const PassThroughAllocator&) {
   return true;
 }
 
@@ -45,8 +45,8 @@ constexpr bool operator==(const PassThroughAllocator& lhs,
  * @return true Never
  * @return false Always
  */
-constexpr bool operator!=(const PassThroughAllocator& lhs,
-                          const PassThroughAllocator& rhs) {
+constexpr bool operator!=(const PassThroughAllocator&,
+                          const PassThroughAllocator&) {
   return false;
 }
 
