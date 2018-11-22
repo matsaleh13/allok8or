@@ -4,7 +4,11 @@
  */
 #pragma once
 
+// Project headers
 #include "allocator.h"
+
+// Library headers
+#include <type_traits>
 
 namespace allok8or {
 
