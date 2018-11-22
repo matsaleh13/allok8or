@@ -26,8 +26,8 @@ public:
   AllocationTracker();
   ~AllocationTracker();
 
-  AllocationTracker(const AllocationTracker&) = delete; // TODO: make copyable
-  AllocationTracker& operator=(const AllocationTracker&); // TODO: make assignable
+  AllocationTracker(const AllocationTracker&) = delete; 
+  AllocationTracker& operator=(const AllocationTracker&); 
 
   bool add(BlockHeader* block);
   bool remove(BlockHeader* block);

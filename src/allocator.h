@@ -28,7 +28,6 @@ public:
 
 protected:
   constexpr Allocator() {}  // Don't create the base class.
-  ~Allocator() {} // Don't destroy the base class.
 
 private:
   constexpr TImplementation& impl() {

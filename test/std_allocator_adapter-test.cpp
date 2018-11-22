@@ -151,7 +151,7 @@ TEST_CASE("std_map_with_diagnostic") {
   
   PassThroughAllocator internal_allocator;
   BackingAllocatorType backing_allocator(internal_allocator);
-  TestAllocator allocator(backing_allocator);;
+  TestAllocator allocator(backing_allocator);
 
   std::map<int, DoubleBar, std::less<int>, TestAllocator> test_map(allocator);
 

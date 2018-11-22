@@ -26,13 +26,13 @@ namespace allok8or {
  * NOTE: This allocator contains state that should be shared and NOT duplicated
  * if the allocator is copied. TODO: still working on that.
  *
- * @tparam TAllocator Type of the backing allocator; must be an
- * allok8or::Allocator-defived class.
+ * @tparam TBackingAllocator Type of the backing allocator; must be an
+ * allok8or::Allocator-derived class.
  */
-template <typename TAllocator>
-class DiagnosticAllocator : public Allocator<DiagnosticAllocator<TAllocator>> {
+template <typename TBackingAllocator>
+class DiagnosticAllocator : public Allocator<DiagnosticAllocator<TBackingAllocator>> {
 public:
-  DiagnosticAllocator(Allocator<TAllocator>& allocator);
+  DiagnosticAllocator(Allocator<TBackingAllocator>& allocator);
   ~DiagnosticAllocator(){};
 
   void* allocate(size_t size) const;
@@ -42,34 +42,34 @@ public:
   const diagnostic::AllocationTracker& Tracker() const { return m_tracker; }
 
 private:
-  Allocator<TAllocator>& m_allocator;
+  TBackingAllocator& m_allocator;
   mutable diagnostic::AllocationTracker
       m_tracker; // mutable required because all Allocator<T>-derived classes
                  // must have const API.
 };
 
-template <typename TAllocator>
-constexpr bool operator==(const DiagnosticAllocator<TAllocator>& lhs,
-                          const DiagnosticAllocator<TAllocator>& rhs) {
+template <typename TBackingAllocator>
+constexpr bool operator==(const DiagnosticAllocator<TBackingAllocator>& lhs,
+                          const DiagnosticAllocator<TBackingAllocator>& rhs) {
   return &lhs == &rhs;
 }
 
-template <typename TAllocator>
-constexpr bool operator!=(const DiagnosticAllocator<TAllocator>& lhs,
-                          const DiagnosticAllocator<TAllocator>& rhs) {
+template <typename TBackingAllocator>
+constexpr bool operator!=(const DiagnosticAllocator<TBackingAllocator>& lhs,
+                          const DiagnosticAllocator<TBackingAllocator>& rhs) {
   return !(&lhs == &rhs);
 }
 
 /**
  * @brief Constructor
  *
- * @tparam TAllocator Type of the backing allocator.
+ * @tparam TBackingAllocator Type of the backing allocator.
  * @param allocator The backing allocator to actually allocate/deallocate heap
  */
-template <typename TAllocator>
-DiagnosticAllocator<TAllocator>::DiagnosticAllocator(
-    Allocator<TAllocator>& allocator)
-    : m_allocator(allocator) {}
+template <typename TBackingAllocator>
+DiagnosticAllocator<TBackingAllocator>::DiagnosticAllocator(
+    Allocator<TBackingAllocator>& allocator)
+    : m_allocator(static_cast<TBackingAllocator&>(allocator)) {}
 
 /**
  * @brief Gets memory from the backing allocator using default alignment and
@@ -79,12 +79,12 @@ DiagnosticAllocator<TAllocator>::DiagnosticAllocator(
  * detecting leaks. The pointer returned to the caller is the starting address
  * of the user portion of the memory block.
  *
- * @tparam TAllocator Type of the backing allocator.
+ * @tparam TBackingAllocator Type of the backing allocator.
  * @param user_data_size The size of the memory requested by the caller.
  * @return void* Pointer to the user portion of the memory.
  */
-template <typename TAllocator>
-void* allok8or::DiagnosticAllocator<TAllocator>::allocate(
+template <typename TBackingAllocator>
+void* allok8or::DiagnosticAllocator<TBackingAllocator>::allocate(
     size_t user_data_size) const {
   return allocate(user_data_size, alignof(std::max_align_t));
 }
@@ -97,13 +97,13 @@ void* allok8or::DiagnosticAllocator<TAllocator>::allocate(
  * detecting leaks. The pointer returned to the caller is the starting address
  * of the user portion of the memory block.
  *
- * @tparam TAllocator Type of the backing allocator.
+ * @tparam TBackingAllocator Type of the backing allocator.
  * @param user_data_size The size of the memory requested by the caller.
  * @param user_data_alignment The alignment requested by the caller.
  * @return void* Pointer to the user portion of the memory.
  */
-template <typename TAllocator>
-void* allok8or::DiagnosticAllocator<TAllocator>::allocate(
+template <typename TBackingAllocator>
+void* allok8or::DiagnosticAllocator<TBackingAllocator>::allocate(
     size_t user_data_size, size_t user_data_alignment) const {
   auto aligned_user_data_size =
       align::get_aligned_size(user_data_size, user_data_alignment);
@@ -134,12 +134,12 @@ void* allok8or::DiagnosticAllocator<TAllocator>::allocate(
  *
  * NOTE: Looks up the header using the pointer to the user memory provided.
  *
- * @tparam TAllocator Type of the backing allocator.
+ * @tparam TBackingAllocator Type of the backing allocator.
  * @param user_data Pointer to the user portion of the memory block to
  * deallocate.
  */
-template <typename TAllocator>
-void DiagnosticAllocator<TAllocator>::deallocate(void* user_data) const {
+template <typename TBackingAllocator>
+void DiagnosticAllocator<TBackingAllocator>::deallocate(void* user_data) const {
   diagnostic::BlockHeader* header =
       diagnostic::BlockHeader::get_header(user_data);
   assert(header->user_data() == user_data);

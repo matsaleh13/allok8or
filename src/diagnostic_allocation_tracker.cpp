@@ -9,15 +9,13 @@
 
 // Project headers
 #include "align.h"
-#include "logging.h"
 #include "diagnostic_block_header.h"
+#include "logging.h"
 
 // Library headers
 
-
 namespace allok8or {
 namespace diagnostic {
-
 
 //
 // AllocationTracker Implementation
