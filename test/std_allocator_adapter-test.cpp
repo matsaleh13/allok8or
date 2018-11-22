@@ -142,18 +142,63 @@ TEST_CASE("std_map_with_pass_through") {
   CHECK_EQ(test_map.end(), test_map.find(7));
 }
 
+TEST_CASE("std_map_copy_with_pass_through") {
+  PassThroughAllocator internal_allocator;
+  using DoubleBar = BarT<double>;
+  using TestMapValueType = std::pair<const int, DoubleBar>;
+  using TestAllocator =
+      StdAllocatorAdapter<TestMapValueType, PassThroughAllocator>;
+  TestAllocator allocator(internal_allocator);
+  using TestMap = std::map<int, DoubleBar, std::less<int>, TestAllocator>;
+
+  TestMap test_map(allocator);
+
+  DoubleBar db1, db2, db3;
+  db1.m_data.fill(0.42);
+  db2.m_data.fill(42.0);
+  db3.m_data.fill(0);
+
+  test_map[0] = db1;
+  test_map[42] = db2;
+  test_map[4200] = db3;
+
+  // copy the map
+  TestMap test_map_copy(test_map);
+
+  // StdAllocatorAdapters should be equal.
+  CHECK_EQ(test_map.get_allocator(), test_map_copy.get_allocator());
+ 
+  // Backing allocator should be shared.
+  CHECK_EQ(&(test_map.get_allocator().allocator()), &(test_map_copy.get_allocator().allocator()));
+
+  // Contents preserved.
+  CHECK_EQ(3, test_map_copy.size());
+
+  CHECK_EQ(db1, test_map_copy.find(0)->second);
+  CHECK_EQ(db1, test_map_copy[0]);
+
+  CHECK_EQ(db2, test_map_copy.find(42)->second);
+  CHECK_EQ(db2, test_map_copy[42]);
+
+  CHECK_EQ(db3, test_map_copy.find(4200)->second);
+  CHECK_EQ(db3, test_map_copy[4200]);
+
+  CHECK_EQ(test_map_copy.end(), test_map_copy.find(7));
+}
+
 TEST_CASE("std_map_with_diagnostic") {
   using BackingAllocatorType = DiagnosticAllocator<PassThroughAllocator>;
   using DoubleBar = BarT<double>;
   using TestMapValueType = std::pair<const int, DoubleBar>;
   using TestAllocator =
       StdAllocatorAdapter<TestMapValueType, BackingAllocatorType>;
+  using TestMap = std::map<int, DoubleBar, std::less<int>, TestAllocator>;
   
   PassThroughAllocator internal_allocator;
   BackingAllocatorType backing_allocator(internal_allocator);
   TestAllocator allocator(backing_allocator);
 
-  std::map<int, DoubleBar, std::less<int>, TestAllocator> test_map(allocator);
+  TestMap test_map(allocator);
 
   DoubleBar db1, db2, db3;
   db1.m_data.fill(0.42);
@@ -176,4 +221,51 @@ TEST_CASE("std_map_with_diagnostic") {
   CHECK_EQ(db3, test_map[4200]);
 
   CHECK_EQ(test_map.end(), test_map.find(7));
+}
+
+TEST_CASE("std_map_copy_with_diagnostic") {
+  using BackingAllocatorType = DiagnosticAllocator<PassThroughAllocator>;
+  using DoubleBar = BarT<double>;
+  using TestMapValueType = std::pair<const int, DoubleBar>;
+  using TestAllocator =
+      StdAllocatorAdapter<TestMapValueType, BackingAllocatorType>;
+  using TestMap = std::map<int, DoubleBar, std::less<int>, TestAllocator>;
+  
+  PassThroughAllocator internal_allocator;
+  BackingAllocatorType backing_allocator(internal_allocator);
+  TestAllocator allocator(backing_allocator);
+
+  TestMap test_map(allocator);
+
+  DoubleBar db1, db2, db3;
+  db1.m_data.fill(0.42);
+  db2.m_data.fill(42.0);
+  db3.m_data.fill(0);
+
+  test_map[0] = db1;
+  test_map[42] = db2;
+  test_map[4200] = db3;
+
+  // copy the map
+  TestMap test_map_copy(test_map);
+
+  // StdAllocatorAdapters should be equal.
+  CHECK_EQ(test_map.get_allocator(), test_map_copy.get_allocator());
+ 
+  // Backing allocator should be shared.
+  CHECK_EQ(&(test_map.get_allocator().allocator()), &(test_map_copy.get_allocator().allocator()));
+
+  // Contents preserved.
+  CHECK_EQ(3, test_map_copy.size());
+
+  CHECK_EQ(db1, test_map_copy.find(0)->second);
+  CHECK_EQ(db1, test_map_copy[0]);
+
+  CHECK_EQ(db2, test_map_copy.find(42)->second);
+  CHECK_EQ(db2, test_map_copy[42]);
+
+  CHECK_EQ(db3, test_map_copy.find(4200)->second);
+  CHECK_EQ(db3, test_map_copy[4200]);
+
+  CHECK_EQ(test_map_copy.end(), test_map_copy.find(7));
 }

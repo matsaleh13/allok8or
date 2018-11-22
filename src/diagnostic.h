@@ -23,17 +23,21 @@ namespace allok8or {
  * This allocator does not itself manage allocated memory. Rather, another
  * allocator passed in as a ctor argument does that.
  *
- * NOTE: This allocator contains state that should be shared and NOT duplicated
- * if the allocator is copied. TODO: still working on that.
+ * NOTE: This allocator cannot be copied; it must be shared.
+ * TODO: Thread safety.
  *
  * @tparam TBackingAllocator Type of the backing allocator; must be an
  * allok8or::Allocator-derived class.
  */
 template <typename TBackingAllocator>
-class DiagnosticAllocator : public Allocator<DiagnosticAllocator<TBackingAllocator>> {
+class DiagnosticAllocator
+    : public Allocator<DiagnosticAllocator<TBackingAllocator>> {
 public:
   DiagnosticAllocator(Allocator<TBackingAllocator>& allocator);
   ~DiagnosticAllocator(){};
+
+  DiagnosticAllocator(const DiagnosticAllocator&) = delete;
+  DiagnosticAllocator& operator=(const DiagnosticAllocator&) = delete;
 
   void* allocate(size_t size) const;
   void* allocate(size_t size, size_t alignment) const;
