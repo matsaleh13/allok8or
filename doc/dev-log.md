@@ -277,7 +277,27 @@
 ## 2018-11-21
 
 - StdAllocatorAdapter continued:
+  - Added tests using std::map container with both PassThroughAllocator and DiagnosticAllocator.
   - Got all tests working.
   - Would like better tests for deallocate and allocate_array, but that would probably require intrusive marking of the raw memory buffer. Not ready to do that.
+- Question: should I make all allocators default-constructable? 
+  - I want to use dependency injection to reduce coupling, so I've been passing backing allocators as args to ctor in both DiagnosticAllocator and StdAllocatorAdapter.
+  - However, if everything is default-constructable, simply passing the allocator type as a template argument should be enough, right?
+  - Making allocators default-constructable would simplify internal members, holding them by value, not by reference, and ownership would be simpler.
+  - If needed, I could still support traditional DI by adding a ctor overload that takes the type I need, and assigning the internal type to it.
+  - The above implies that all allocators must be copy-assignable and most likely copy-constructable. This is probably good though, as `std::allocator` requires that also.
+
+## 2018-11-22
+
+- StdAllocatorAdapter continued:
+  - Arg... conflicted and confused about the interplay between requirements for `std::allocator` copy/move and default construction.
+  - What that really boils down to is whether the backing allocator (and related stateful class members) must be held by value (i.e. created internally and/or copy/assigned) or by reference (simply shared).
+  - When holding by value I quickly ran into (predicted) issues with what to do when I use a `StdAllocatorAdapter` in an STL container. Ultimately it pushes the copy/assign issue deeper into members of members, such that everything needs to be copy/assignable, which does complexify things.
+  - Also, at some level down, stateful members that manage resources must ultimately be shared, because we cannot copy all the backing memory they manage.
+  - So, I'm swinging back towards holding the backing allocator by reference, because the higher up that's done, the simpler things get. I think.
+  - Part of the problem for me is (not) understanding `rebind` well enough. It seems that `rebind` makes use of a *converting* copy ctor, that takes the new (rebound) type as a template argument. So, that right there tells me that `rebind` means copying the `StdAllocatorAdapter` while sharing the backing allocator.
+  - Oh, and the requirement that copies of a `std::allocator` be equal virtually mandates that internal state be shared, too.
+  - Here's an approximate example of an allocator with shared internal state (the `arena`): https://howardhinnant.github.io/short_alloc.h, with usage example here: https://howardhinnant.github.io/stack_alloc.html. In this example the stateful member is held by reference, passed as a ctor argument, and is shared on copy. I don't think we can take this as a *canonical* example to follow, but it's not a bad stake in the ground.
+
 
 
