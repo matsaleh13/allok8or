@@ -280,12 +280,12 @@
   - Added tests using std::map container with both PassThroughAllocator and DiagnosticAllocator.
   - Got all tests working.
   - Would like better tests for deallocate and allocate_array, but that would probably require intrusive marking of the raw memory buffer. Not ready to do that.
-- Question: should I make all allocators default-constructable? 
+- Question: should I make all allocators default-constructible? 
   - I want to use dependency injection to reduce coupling, so I've been passing backing allocators as args to ctor in both DiagnosticAllocator and StdAllocatorAdapter.
-  - However, if everything is default-constructable, simply passing the allocator type as a template argument should be enough, right?
-  - Making allocators default-constructable would simplify internal members, holding them by value, not by reference, and ownership would be simpler.
+  - However, if everything is default-constructible, simply passing the allocator type as a template argument should be enough, right?
+  - Making allocators default-constructible would simplify internal members, holding them by value, not by reference, and ownership would be simpler.
   - If needed, I could still support traditional DI by adding a ctor overload that takes the type I need, and assigning the internal type to it.
-  - The above implies that all allocators must be copy-assignable and most likely copy-constructable. This is probably good though, as `std::allocator` requires that also.
+  - The above implies that all allocators must be copy-assignable and most likely copy-constructible. This is probably good though, as `std::allocator` requires that also.
 
 ## 2018-11-22
 
@@ -298,6 +298,19 @@
   - Part of the problem for me is (not) understanding `rebind` well enough. It seems that `rebind` makes use of a *converting* copy ctor, that takes the new (rebound) type as a template argument. So, that right there tells me that `rebind` means copying the `StdAllocatorAdapter` while sharing the backing allocator.
   - Oh, and the requirement that copies of a `std::allocator` be equal virtually mandates that internal state be shared, too.
   - Here's an approximate example of an allocator with shared internal state (the `arena`): https://howardhinnant.github.io/short_alloc.h, with usage example here: https://howardhinnant.github.io/stack_alloc.html. In this example the stateful member is held by reference, passed as a ctor argument, and is shared on copy. I don't think we can take this as a *canonical* example to follow, but it's not a bad stake in the ground.
+  - Reverted the changes I'd made that held the backing allocator by value, back to a reference. Caller will own the lifecycle of the backing allocator for now.
+  - Added a couple more tests that include copying a std::map. All good.
 
+## 2018-11-23
 
+- Created MockAllocator class for better testing of `StdAllocatorAdapter`:
+  - Ctor takes two callback functions, one for allocate and the other for deallocate.
+  - Got compiler error tho, when passing lambdas to the ctor:
+
+  ```cmake
+  [build] ..\test\std_allocator_adapter-test.cpp(54): error C2664: 'allok8or::test::MockAllocator::MockAllocator(const allok8or::test::MockAllocator &&)': cannot convert argument 1 from '_DOCTEST_ANON_FUNC_2::<lambda_4d3a60ddb2e0b246c787357bea18979d>' to 'allok8or::test::CbAllocate'
+  ```
+
+  - Turns out it's because the implicit return type of the lambda didn't agree with the function signature of the callback. Fixed.
+- Modified the `std_allocator_adapter-test.cpp` to use the `MockAllocator` instead of the `PassThroughAllocator` directly.
 

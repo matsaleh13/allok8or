@@ -8,9 +8,8 @@
 
 // Project headers
 #include "allocator.h"
-#include "allocator_call_helper.h"
 #include "diagnostic.h"
-#include "pass_through.h"
+#include "mock_allocator.h"
 
 
 // Library headers
@@ -51,55 +50,72 @@ bool operator==(const BarT<T>& lhs, const BarT<T>& rhs) {
 using namespace allok8or;
 
 TEST_CASE("allocate") {
-  PassThroughAllocator internal_allocator;
-  StdAllocatorAdapter<BarT<double>, PassThroughAllocator> allocator(
+  bool allocate_called = false;
+  auto on_allocate = [&](size_t, size_t) { allocate_called = true; };
+
+  test::MockAllocator internal_allocator(on_allocate);
+  StdAllocatorAdapter<BarT<double>, test::MockAllocator> allocator(
       internal_allocator);
 
   auto memory = allocator.allocate(1); // one object only
+  CHECK_MESSAGE(allocate_called, "allocate not called");
   CHECK_NE(memory, nullptr);
   CHECK_EQ(sizeof(*memory), sizeof(BarT<double>));
 }
 
 TEST_CASE("allocate_array") {
-  PassThroughAllocator internal_allocator;
-  StdAllocatorAdapter<BarT<double>, PassThroughAllocator> allocator(
+  bool allocate_called = false;
+  auto on_allocate = [&](size_t, size_t) { allocate_called = true; };
+
+  test::MockAllocator internal_allocator(on_allocate);
+  StdAllocatorAdapter<BarT<double>, test::MockAllocator> allocator(
       internal_allocator);
 
   auto count = 32;
   auto memory = allocator.allocate(count);           // multiple objects
+
+  CHECK_MESSAGE(allocate_called, "allocate not called");
   CHECK_EQ(sizeof(memory[0]), sizeof(BarT<double>)); // TODO: better test?
 }
 
 TEST_CASE("deallocate") {
-  PassThroughAllocator internal_allocator;
-  StdAllocatorAdapter<BarT<double>, PassThroughAllocator> allocator(
+  bool deallocate_called = false;
+  auto on_deallocate = [&](void*) { deallocate_called = true; };
+
+  test::MockAllocator internal_allocator(nullptr, on_deallocate);
+  StdAllocatorAdapter<BarT<double>, test::MockAllocator> allocator(
       internal_allocator);
 
   auto memory = allocator.allocate(1); // one object only
   allocator.deallocate(memory, 0);
+  CHECK_MESSAGE(deallocate_called, "deallocate not called");
   CHECK_NE(memory, nullptr); // What to test, really? Make sure it links.
 }
 
 TEST_CASE("deallocate_array") {
-  PassThroughAllocator internal_allocator;
-  StdAllocatorAdapter<BarT<double>, PassThroughAllocator> allocator(
+  bool deallocate_called = false;
+  auto on_deallocate = [&](void*) { deallocate_called = true; };
+
+  test::MockAllocator internal_allocator(nullptr, on_deallocate);
+  StdAllocatorAdapter<BarT<double>, test::MockAllocator> allocator(
       internal_allocator);
 
   auto count = 32;
   auto memory = allocator.allocate(count); // multiple objects
   allocator.deallocate(memory, 0);
+  CHECK_MESSAGE(deallocate_called, "deallocate not called");
   CHECK_NE(memory, nullptr); // What to test, really? Make sure it links.
 }
 
 TEST_CASE("compare_with_pass_through") {
-  // NOTE: PassThroughAllocator has no state, so all are equivalent.
+  // NOTE: test::MockAllocator has no state, so all are equivalent.
 
-  PassThroughAllocator internal_allocator1;
-  StdAllocatorAdapter<BarT<double>, PassThroughAllocator> allocator1(
+  test::MockAllocator internal_allocator1;
+  StdAllocatorAdapter<BarT<double>, test::MockAllocator> allocator1(
       internal_allocator1);
 
-  PassThroughAllocator internal_allocator2;
-  StdAllocatorAdapter<FooT<double>, PassThroughAllocator> allocator2(
+  test::MockAllocator internal_allocator2;
+  StdAllocatorAdapter<FooT<double>, test::MockAllocator> allocator2(
       internal_allocator2);
 
   SUBCASE("same_instance_compares_equal") { CHECK_EQ(allocator1, allocator1); }
@@ -109,15 +125,22 @@ TEST_CASE("compare_with_pass_through") {
   }
 }
 
-TEST_CASE("std_map_with_pass_through") {
-  PassThroughAllocator internal_allocator;
+TEST_CASE("std_map_add_remove") {
+  int allocate_called = 0;
+  auto on_allocate = [&](size_t, size_t) { ++allocate_called; };
+
+  int deallocate_called = 0;
+  auto on_deallocate = [&](void*) { ++deallocate_called; };
+
+  test::MockAllocator internal_allocator(on_allocate, on_deallocate);
   using DoubleBar = BarT<double>;
   using TestMapValueType = std::pair<const int, DoubleBar>;
   using TestAllocator =
-      StdAllocatorAdapter<TestMapValueType, PassThroughAllocator>;
+      StdAllocatorAdapter<TestMapValueType, test::MockAllocator>;
   TestAllocator allocator(internal_allocator);
 
   std::map<int, DoubleBar, std::less<int>, TestAllocator> test_map(allocator);
+  allocate_called = 0;  // Reset, because some allocations may be called at creation
 
   DoubleBar db1, db2, db3;
   db1.m_data.fill(0.42);
@@ -125,8 +148,13 @@ TEST_CASE("std_map_with_pass_through") {
   db3.m_data.fill(0);
 
   test_map[0] = db1;
+  CHECK_EQ(1, allocate_called);
+
   test_map[42] = db2;
+  CHECK_EQ(2, allocate_called);
+
   test_map[4200] = db3;
+  CHECK_EQ(3, allocate_called);
 
   CHECK_EQ(3, test_map.size());
 
@@ -139,15 +167,24 @@ TEST_CASE("std_map_with_pass_through") {
   CHECK_EQ(db3, test_map.find(4200)->second);
   CHECK_EQ(db3, test_map[4200]);
 
+  test_map.erase(42);
+  CHECK_EQ(1, deallocate_called);
+
   CHECK_EQ(test_map.end(), test_map.find(7));
 }
 
-TEST_CASE("std_map_copy_with_pass_through") {
-  PassThroughAllocator internal_allocator;
+TEST_CASE("std_map_add_remove_with_copy") {
+  int allocate_called = 0;
+  auto on_allocate = [&](size_t, size_t) { ++allocate_called; };
+
+  int deallocate_called = 0;
+  auto on_deallocate = [&](void*) { ++deallocate_called; };
+
+  test::MockAllocator internal_allocator(on_allocate, on_deallocate);
   using DoubleBar = BarT<double>;
   using TestMapValueType = std::pair<const int, DoubleBar>;
   using TestAllocator =
-      StdAllocatorAdapter<TestMapValueType, PassThroughAllocator>;
+      StdAllocatorAdapter<TestMapValueType, test::MockAllocator>;
   TestAllocator allocator(internal_allocator);
   using TestMap = std::map<int, DoubleBar, std::less<int>, TestAllocator>;
 
@@ -184,88 +221,11 @@ TEST_CASE("std_map_copy_with_pass_through") {
   CHECK_EQ(db3, test_map_copy[4200]);
 
   CHECK_EQ(test_map_copy.end(), test_map_copy.find(7));
+
+  // Now change the copy.
+  allocate_called = 0;  // Reset
+  test_map_copy[42000] = db1;
+  CHECK_EQ(1, allocate_called);
+
 }
 
-TEST_CASE("std_map_with_diagnostic") {
-  using BackingAllocatorType = DiagnosticAllocator<PassThroughAllocator>;
-  using DoubleBar = BarT<double>;
-  using TestMapValueType = std::pair<const int, DoubleBar>;
-  using TestAllocator =
-      StdAllocatorAdapter<TestMapValueType, BackingAllocatorType>;
-  using TestMap = std::map<int, DoubleBar, std::less<int>, TestAllocator>;
-  
-  PassThroughAllocator internal_allocator;
-  BackingAllocatorType backing_allocator(internal_allocator);
-  TestAllocator allocator(backing_allocator);
-
-  TestMap test_map(allocator);
-
-  DoubleBar db1, db2, db3;
-  db1.m_data.fill(0.42);
-  db2.m_data.fill(42.0);
-  db3.m_data.fill(0);
-
-  test_map[0] = db1;
-  test_map[42] = db2;
-  test_map[4200] = db3;
-
-  CHECK_EQ(3, test_map.size());
-
-  CHECK_EQ(db1, test_map.find(0)->second);
-  CHECK_EQ(db1, test_map[0]);
-
-  CHECK_EQ(db2, test_map.find(42)->second);
-  CHECK_EQ(db2, test_map[42]);
-
-  CHECK_EQ(db3, test_map.find(4200)->second);
-  CHECK_EQ(db3, test_map[4200]);
-
-  CHECK_EQ(test_map.end(), test_map.find(7));
-}
-
-TEST_CASE("std_map_copy_with_diagnostic") {
-  using BackingAllocatorType = DiagnosticAllocator<PassThroughAllocator>;
-  using DoubleBar = BarT<double>;
-  using TestMapValueType = std::pair<const int, DoubleBar>;
-  using TestAllocator =
-      StdAllocatorAdapter<TestMapValueType, BackingAllocatorType>;
-  using TestMap = std::map<int, DoubleBar, std::less<int>, TestAllocator>;
-  
-  PassThroughAllocator internal_allocator;
-  BackingAllocatorType backing_allocator(internal_allocator);
-  TestAllocator allocator(backing_allocator);
-
-  TestMap test_map(allocator);
-
-  DoubleBar db1, db2, db3;
-  db1.m_data.fill(0.42);
-  db2.m_data.fill(42.0);
-  db3.m_data.fill(0);
-
-  test_map[0] = db1;
-  test_map[42] = db2;
-  test_map[4200] = db3;
-
-  // copy the map
-  TestMap test_map_copy(test_map);
-
-  // StdAllocatorAdapters should be equal.
-  CHECK_EQ(test_map.get_allocator(), test_map_copy.get_allocator());
- 
-  // Backing allocator should be shared.
-  CHECK_EQ(&(test_map.get_allocator().allocator()), &(test_map_copy.get_allocator().allocator()));
-
-  // Contents preserved.
-  CHECK_EQ(3, test_map_copy.size());
-
-  CHECK_EQ(db1, test_map_copy.find(0)->second);
-  CHECK_EQ(db1, test_map_copy[0]);
-
-  CHECK_EQ(db2, test_map_copy.find(42)->second);
-  CHECK_EQ(db2, test_map_copy[42]);
-
-  CHECK_EQ(db3, test_map_copy.find(4200)->second);
-  CHECK_EQ(db3, test_map_copy[4200]);
-
-  CHECK_EQ(test_map_copy.end(), test_map_copy.find(7));
-}
