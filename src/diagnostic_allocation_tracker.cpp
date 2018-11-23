@@ -25,7 +25,11 @@ namespace diagnostic {
  * AllocationTracker ctor
  */
 AllocationTracker::AllocationTracker()
-    : m_head(nullptr), m_tail(nullptr), m_num_blocks(0), m_num_bytes(0) {}
+    : m_head(nullptr),
+      m_tail(nullptr),
+      m_num_blocks(0),
+      m_num_bytes(0),
+      m_stats(nullptr) {}
 
 /**
  * AllocationTracker dtor

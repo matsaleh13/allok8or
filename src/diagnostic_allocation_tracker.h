@@ -10,11 +10,11 @@
 
 // Library headers
 
-
 namespace allok8or {
 namespace diagnostic {
 
 class BlockHeader;
+class TypeStatsTracker;
 
 /**
  * Manages the linked list of headers and generates metrics from them.
@@ -46,6 +46,8 @@ private:
   BlockHeader* m_tail;
   llong_t m_num_blocks;
   llong_t m_num_bytes;
+
+  TypeStatsTracker* m_stats;
 };
 
 } // namespace diagnostic
