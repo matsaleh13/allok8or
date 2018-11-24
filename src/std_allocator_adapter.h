@@ -16,20 +16,19 @@ namespace allok8or {
  * @brief Adapter class to expose allok8or::Allocator as std::allocator.
  *
  * Based on: https://howardhinnant.github.io/allocator_boilerplate.html
- * 
+ *
  * NOTE: Backing allocator is *shared* on copy/move, and is assumed to be unique
  * for all istances of StdAllocatorAdapter with a given TBackingAllocator.
- * 
+ *
  * @tparam T Type of data to be allocated/deallocated.
  * @tparam TBackingAllocator Type of the backing allocator to be passed to
  * allok8or::Allocator. NOTE: Must have const API.
  */
 template <typename T, typename TBackingAllocator>
 class StdAllocatorAdapter {
-  TBackingAllocator& m_allocator;
-
 public:
   using value_type = T;
+  using backing_allocator_type = TBackingAllocator;
 
   // using pointer = value_type*;
   // using const_pointer =
@@ -53,15 +52,16 @@ public:
 
   /**
    * @brief Ctor that takes a TBackingAllocator argument.
-   * 
+   *
    * @param allocator Allocator instance to be used as the backing allocator.
    */
-  StdAllocatorAdapter(Allocator<TBackingAllocator>& allocator) noexcept
-      : m_allocator(static_cast<TBackingAllocator&>(allocator)) {}
+  StdAllocatorAdapter(Allocator<backing_allocator_type>& allocator) noexcept
+      : m_allocator(static_cast<backing_allocator_type&>(allocator)) {}
 
   template <typename U>
-  StdAllocatorAdapter(const StdAllocatorAdapter<U, TBackingAllocator>& other) noexcept
-  : m_allocator(static_cast<TBackingAllocator&>(other.allocator())) {}
+  StdAllocatorAdapter(
+      const StdAllocatorAdapter<U, backing_allocator_type>& other) noexcept
+      : m_allocator(static_cast<backing_allocator_type&>(other.allocator())) {}
 
   value_type* allocate(std::size_t count) {
     return static_cast<value_type*>(
@@ -72,8 +72,8 @@ public:
     m_allocator.deallocate(user_data);
   }
 
-  Allocator<TBackingAllocator>& allocator() { return m_allocator; }
-  Allocator<TBackingAllocator>& allocator() const { return m_allocator; }
+  Allocator<backing_allocator_type>& allocator() { return m_allocator; }
+  Allocator<backing_allocator_type>& allocator() const { return m_allocator; }
 
   // value_type* allocate(std::size_t n, const_void_pointer) {
   //   return allocate(n);
@@ -95,21 +95,30 @@ public:
 
   // allocator select_on_container_copy_construction() const { return *this; }
 
-  // See https://foonathan.net/blog/2015/10/05/allocatorawarecontainer-propagation-pitfalls.html
-	using propagate_on_container_copy_assignment = std::true_type; // for consistency
-	using propagate_on_container_move_assignment = std::true_type; // to avoid the pessimization
-	using propagate_on_container_swap = std::true_type; // to avoid the undefined behavior
+  // See
+  // https://foonathan.net/blog/2015/10/05/allocatorawarecontainer-propagation-pitfalls.html
+  using propagate_on_container_copy_assignment =
+      std::true_type; // for consistency
+  using propagate_on_container_move_assignment =
+      std::true_type; // to avoid the pessimization
+  using propagate_on_container_swap =
+      std::true_type; // to avoid the undefined behavior
 
   // using is_always_equal = std::is_empty<allocator>;
+
+private:
+  backing_allocator_type& m_allocator;
 };
 
 template <typename T, typename U, typename TBackingAllocator>
-bool operator==(StdAllocatorAdapter<T, TBackingAllocator> const& lhs, StdAllocatorAdapter<U, TBackingAllocator> const& rhs) noexcept {
+bool operator==(StdAllocatorAdapter<T, TBackingAllocator> const& lhs,
+                StdAllocatorAdapter<U, TBackingAllocator> const& rhs) noexcept {
   return lhs.allocator() == rhs.allocator();
 }
 
 template <typename T, typename TBackingAllocator, typename U>
-bool operator!=(StdAllocatorAdapter<T, TBackingAllocator> const& lhs, StdAllocatorAdapter<U, TBackingAllocator> const& rhs) noexcept {
+bool operator!=(StdAllocatorAdapter<T, TBackingAllocator> const& lhs,
+                StdAllocatorAdapter<U, TBackingAllocator> const& rhs) noexcept {
   return !(lhs == rhs);
 }
 

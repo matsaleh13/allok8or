@@ -313,4 +313,13 @@
 
   - Turns out it's because the implicit return type of the lambda didn't agree with the function signature of the callback. Fixed.
 - Modified the `std_allocator_adapter-test.cpp` to use the `MockAllocator` instead of the `PassThroughAllocator` directly.
+- Started implementing stats tracking code for use by the DiagnosticAllocator:
+  - `diagnostic_allocation_stats.h`, with `AllocationStatsTracker` and related classes.
 
+## 2018-11-24
+
+- Continued work on `AllocationStatsTracker` and related classes:
+  - `AllocationStatsKey` struct has info about call site and type.
+  - `AllocationStats` struct has allocation/deallocation counts and net value accessors.
+  - `AllocationStatsTracker` class has an `std::unordered_map` of `AllocationStatsKey` to `AllocationStats` to track counts of every allocation type/call site.
+  - The `unordered_map` uses the `StdAllocationAdapter<T, PassThroughAllocator>`, to avoid possibility of calling overloaded new/delete and maybe ending up in a recursion or something.

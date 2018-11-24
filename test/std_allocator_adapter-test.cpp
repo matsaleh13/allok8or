@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <array>
 #include <map>
+#include <unordered_map>
 #include <string>
 
 // Test data types.
@@ -139,7 +140,9 @@ TEST_CASE("std_map_add_remove") {
       StdAllocatorAdapter<TestMapValueType, test::MockAllocator>;
   TestAllocator allocator(internal_allocator);
 
-  std::map<int, DoubleBar, std::less<int>, TestAllocator> test_map(allocator);
+  // std::map<int, DoubleBar, std::less<int>, TestAllocator> test_map(allocator);
+  using TestMap = std::unordered_map<int, DoubleBar, std::hash<int>, std::equal_to<int>, TestAllocator>;
+  TestMap test_map(allocator);
   allocate_called = 0;  // Reset, because some allocations may be called at creation
 
   DoubleBar db1, db2, db3;
@@ -186,7 +189,8 @@ TEST_CASE("std_map_add_remove_with_copy") {
   using TestAllocator =
       StdAllocatorAdapter<TestMapValueType, test::MockAllocator>;
   TestAllocator allocator(internal_allocator);
-  using TestMap = std::map<int, DoubleBar, std::less<int>, TestAllocator>;
+  // using TestMap = std::map<int, DoubleBar, std::less<int>, TestAllocator>;
+  using TestMap = std::unordered_map<int, DoubleBar, std::hash<int>, std::equal_to<int>, TestAllocator>;
 
   TestMap test_map(allocator);
 

@@ -125,15 +125,6 @@ void* allok8or::DiagnosticAllocator<TBackingAllocator>::allocate(
 }
 
 /**
- * Given a pointer to the user region of a previously allocated block of memory,
- * looks up the associated header, and releases the entire memory block back to
- * the backing allocator.
- *
- * @param user_data Pointer to the user region of the allocated block to be
- * deallocated.
- */
-
-/**
  * @brief Releases memory back to the backing allocator.
  *
  * NOTE: Looks up the header using the pointer to the user memory provided.
