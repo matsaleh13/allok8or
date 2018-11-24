@@ -323,3 +323,52 @@
   - `AllocationStats` struct has allocation/deallocation counts and net value accessors.
   - `AllocationStatsTracker` class has an `std::unordered_map` of `AllocationStatsKey` to `AllocationStats` to track counts of every allocation type/call site.
   - The `unordered_map` uses the `StdAllocationAdapter<T, PassThroughAllocator>`, to avoid possibility of calling overloaded new/delete and maybe ending up in a recursion or something.
+- Tested above on clang/OSX, and got compiler errors (of course):
+
+  ```cmake
+  build] In file included from /Users/matsaleh/Dev/github/allok8or/test/diagnostic_allocation_stats-test.cpp:8:
+  [build] In file included from /Users/matsaleh/Dev/github/allok8or/src/diagnostic_allocation_stats.h:15:
+  [build] /Library/Developer/CommandLineTools/usr/include/c++/v1/unordered_map:756:5: error: static_assert failed due to requirement 'is_same<value_type, typename allocator_type::value_type>::value' "Invalid allocator::value_type"
+  [build]     static_assert((is_same<value_type, typename allocator_type::value_type>::value),
+  [build]     ^              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  ```
+
+- According to a handful of web results, this is caused by the unordered_map key (i.e. `AllocationStatsKey`) not being `const`. Seems clang enforces this with a static assert, but (apparently) MSVS does not. References:
+  - [Eigen::aligned_allocator fails with std::unordered_multimap](https://stackoverflow.com/questions/27336941/eigenaligned-allocator-fails-with-stdunordered-multimap)
+  - [Compiling with unordered_map fails with Xcode 5.1.1 on OS X 10.9.3](https://stackoverflow.com/questions/24745702/compiling-with-unordered-map-fails-with-xcode-5-1-1-on-os-x-10-9-3)
+  - [/usr/include/c++/v1/map:837:5: error: static_assert failed "Allocator::value_type must be same type as value_type"](https://lists.freebsd.org/pipermail/freebsd-hackers/2016-June/049587.html)
+  - These all seem anecdotal, but changing:
+
+  ```c++
+    using value_type = std::pair<AllocationStatsKey, AllocationStats>;
+  ```
+
+    to
+
+  ```c++
+    using value_type = std::pair<const AllocationStatsKey, AllocationStats>;
+  ```
+
+    worked.
+
+- But, after that, I ended up with test failures on clang:
+
+  ```cmake
+  [ctest] /Users/matsaleh/Dev/github/allok8or/test/std_allocator_adapter-test.cpp:129:
+  [ctest] TEST CASE:  std_map_add_remove
+  [ctest] 
+  [ctest] /Users/matsaleh/Dev/github/allok8or/test/std_allocator_adapter-test.cpp:154: ERROR: CHECK_EQ( 1, allocate_called ) is NOT correct!
+  [ctest]   values: CHECK_EQ( 1, 2 )
+  [ctest] 
+  [ctest] /Users/matsaleh/Dev/github/allok8or/test/std_allocator_adapter-test.cpp:157: ERROR: CHECK_EQ( 2, allocate_called ) is NOT correct!
+  [ctest]   values: CHECK_EQ( 2, 3 )
+  [ctest] 
+  [ctest] /Users/matsaleh/Dev/github/allok8or/test/std_allocator_adapter-test.cpp:160: ERROR: CHECK_EQ( 3, allocate_called ) is NOT correct!
+  [ctest]   values: CHECK_EQ( 3, 5 )
+  [ctest] 
+  [ctest] /Users/matsaleh/Dev/github/allok8or/test/std_allocator_adapter-test.cpp:174: ERROR: CHECK_EQ( 1, deallocate_called ) is NOT correct!
+  [ctest]   values: CHECK_EQ( 1, 2 )
+  ```
+
+- This was a problem when using `std::unordered_map`, but not `std::map` for that test. Bah, it's counting allocations, but this behavior is obviously implementation-specific. Seems the `std::unordered_map` allocates in a less deterministic way. So, I worked around it by resetting my test counter to 0 before each add/remove to/from the map, then just used `CHECK_GT(allocate_called, 0)` to test.
+- After that all tests passed again.
