@@ -9,8 +9,8 @@
 
 // Project headers
 #include "align.h"
-#include "diagnostic_block_header.h"
 #include "diagnostic_allocation_stats.h"
+#include "diagnostic_block_header.h"
 #include "logging.h"
 
 // Library headers
@@ -78,6 +78,10 @@ bool AllocationTracker::add(BlockHeader* block) {
   m_num_blocks++;
   m_num_bytes += block->user_data_size();
 
+  m_stats->track_allocation(block->type_name(),
+                    block->file_name(),
+                    block->line(),
+                    block->user_data_size());
   return true;
 }
 
@@ -132,6 +136,11 @@ bool AllocationTracker::remove(BlockHeader* block) {
     m_head = nullptr;
     m_tail = nullptr;
   }
+
+  m_stats->track_deallocation(block->type_name(),
+                      block->file_name(),
+                      block->line(),
+                      block->user_data_size());
 
   return true;
 }

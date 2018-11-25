@@ -123,11 +123,11 @@ TEST_CASE("track_allocations") {
   llong_t baz_count = 0;
 
   SUBCASE("allocate_foo") {
-    tracker.allocate(foo, sizeof_foo);
+    tracker.track_allocation(foo, sizeof_foo);
     foo_count++;
-    tracker.allocate(foo, sizeof_foo);
+    tracker.track_allocation(foo, sizeof_foo);
     foo_count++;
-    tracker.allocate(foo, sizeof_foo);
+    tracker.track_allocation(foo, sizeof_foo);
     foo_count++;
 
     CHECK_EQ(foo_count, tracker.stats(foo).allocations);
@@ -135,14 +135,14 @@ TEST_CASE("track_allocations") {
   }
 
   SUBCASE("allocate_deallocate_foo") {
-    tracker.allocate(foo, sizeof_foo);
+    tracker.track_allocation(foo, sizeof_foo);
     foo_count++;
-    tracker.allocate(foo, sizeof_foo);
+    tracker.track_allocation(foo, sizeof_foo);
     foo_count++;
-    tracker.allocate(foo, sizeof_foo);
+    tracker.track_allocation(foo, sizeof_foo);
     foo_count++;
 
-    tracker.deallocate(foo, sizeof_foo);
+    tracker.track_deallocation(foo, sizeof_foo);
 
     CHECK_EQ(foo_count, tracker.stats(foo).allocations);
     CHECK_EQ(foo_count * sizeof_foo, tracker.stats(foo).bytes_allocated);
@@ -151,19 +151,19 @@ TEST_CASE("track_allocations") {
   }
 
   SUBCASE("allocate_multiple") {
-    tracker.allocate(foo, sizeof_foo);
+    tracker.track_allocation(foo, sizeof_foo);
     foo_count++;
-    tracker.allocate(foo, sizeof_foo);
+    tracker.track_allocation(foo, sizeof_foo);
     foo_count++;
-    tracker.allocate(foo, sizeof_foo);
+    tracker.track_allocation(foo, sizeof_foo);
     foo_count++;
 
-    tracker.allocate(bar, sizeof_bar);
+    tracker.track_allocation(bar, sizeof_bar);
     bar_count++;
-    tracker.allocate(bar, sizeof_bar);
+    tracker.track_allocation(bar, sizeof_bar);
     bar_count++;
 
-    tracker.allocate(baz, sizeof_baz);
+    tracker.track_allocation(baz, sizeof_baz);
     baz_count++;
 
     CHECK_EQ(foo_count, tracker.stats(foo).allocations);
@@ -177,23 +177,23 @@ TEST_CASE("track_allocations") {
   }
 
   SUBCASE("allocate_deallocate_multiple") {
-    tracker.allocate(foo, sizeof_foo);
+    tracker.track_allocation(foo, sizeof_foo);
     foo_count++;
-    tracker.allocate(foo, sizeof_foo);
+    tracker.track_allocation(foo, sizeof_foo);
     foo_count++;
-    tracker.allocate(foo, sizeof_foo);
+    tracker.track_allocation(foo, sizeof_foo);
     foo_count++;
-    tracker.deallocate(foo, sizeof_foo);
+    tracker.track_deallocation(foo, sizeof_foo);
     foo_count--;
 
-    tracker.allocate(bar, sizeof_bar);
+    tracker.track_allocation(bar, sizeof_bar);
     bar_count++;
-    tracker.allocate(bar, sizeof_bar);
+    tracker.track_allocation(bar, sizeof_bar);
     bar_count++;
 
-    tracker.allocate(baz, sizeof_baz);
+    tracker.track_allocation(baz, sizeof_baz);
     baz_count++;
-    tracker.deallocate(baz, sizeof_baz);
+    tracker.track_deallocation(baz, sizeof_baz);
     baz_count--;
 
     CHECK_EQ(foo_count, tracker.stats(foo).net_allocations());

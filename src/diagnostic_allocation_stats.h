@@ -98,19 +98,19 @@ public:
   //
   // API
   //
-  void allocate(const char* type_name,
+  void track_allocation(const char* type_name,
                 const char* file_name,
                 int line,
                 size_t bytes);
 
-  void allocate(const AllocationStatsKey& key, size_t bytes);
+  void track_allocation(const AllocationStatsKey& key, size_t bytes);
 
-  void deallocate(const char* type_name,
+  void track_deallocation(const char* type_name,
                   const char* file_name,
                   int line,
                   size_t bytes);
 
-  void deallocate(const AllocationStatsKey& key, size_t bytes);
+  void track_deallocation(const AllocationStatsKey& key, size_t bytes);
 
   const StatsMap& stats() const { return m_stats; }
   const AllocationStats& stats(const AllocationStatsKey& key) const;
@@ -137,12 +137,12 @@ AllocationStatsTracker::allocator_type::backing_allocator_type
  * @param line Source line from which the allocation call occurred.
  * @param bytes Number of bytes allocated.
  */
-inline void AllocationStatsTracker::allocate(const char* type_name,
+inline void AllocationStatsTracker::track_allocation(const char* type_name,
                                              const char* file_name,
                                              int line,
                                              size_t bytes) {
   AllocationStatsKey key{type_name, file_name, line};
-  allocate(key, bytes);
+  track_allocation(key, bytes);
 }
 
 /**
@@ -151,7 +151,7 @@ inline void AllocationStatsTracker::allocate(const char* type_name,
  * @param key Call site from which the allocation call occurred.
  * @param bytes Number of bytes allocated.
  */
-inline void AllocationStatsTracker::allocate(const AllocationStatsKey& key,
+inline void AllocationStatsTracker::track_allocation(const AllocationStatsKey& key,
                                              size_t bytes) {
   m_stats[key].allocations++;
   m_stats[key].bytes_allocated += bytes;
@@ -166,12 +166,12 @@ inline void AllocationStatsTracker::allocate(const AllocationStatsKey& key,
  * @param line Source line from which the original allocation call occurred.
  * @param bytes Number of bytes originally allocated.
  */
-inline void AllocationStatsTracker::deallocate(const char* type_name,
+inline void AllocationStatsTracker::track_deallocation(const char* type_name,
                                                const char* file_name,
                                                int line,
                                                size_t bytes) {
   AllocationStatsKey key{type_name, file_name, line};
-  deallocate(key, bytes);
+  track_deallocation(key, bytes);
 }
 
 /**
@@ -180,7 +180,7 @@ inline void AllocationStatsTracker::deallocate(const char* type_name,
  * @param key Call site from which the original allocation call occurred.
  * @param bytes Number of bytes orignally allocated.
  */
-inline void AllocationStatsTracker::deallocate(const AllocationStatsKey& key,
+inline void AllocationStatsTracker::track_deallocation(const AllocationStatsKey& key,
                                                size_t bytes) {
   m_stats[key].deallocations++;
   m_stats[key].bytes_deallocated += bytes;
