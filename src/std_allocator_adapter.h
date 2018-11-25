@@ -48,6 +48,7 @@ public:
   //   typedef allocator<U> other;
   // };
 
+  // We can't guarantee that backing allocators will be default-constructible.
   StdAllocatorAdapter() = delete;
 
   /**
