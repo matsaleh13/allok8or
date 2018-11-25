@@ -36,6 +36,7 @@ public:
   DiagnosticAllocator(Allocator<TBackingAllocator>& allocator);
   ~DiagnosticAllocator(){};
 
+  // No copies; share this when appropriate.
   DiagnosticAllocator(const DiagnosticAllocator&) = delete;
   DiagnosticAllocator& operator=(const DiagnosticAllocator&) = delete;
 

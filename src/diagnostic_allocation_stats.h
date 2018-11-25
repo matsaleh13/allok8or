@@ -12,6 +12,7 @@
 
 // Library headers
 #include <functional>
+#include <memory>
 #include <unordered_map>
 
 namespace allok8or {
@@ -62,6 +63,14 @@ const AllocationStats AllocationStats::null_stats;
  * @brief Responsible for recording and reporting cumulative statistics on
  * allocations and deallocations.
  *
+ * This class uses a custom allocator for its internal map, and also for
+ * creating instances of itself. This custom allocator does not call operator
+ * new/delete. This is because this code may execute in a context that overloads
+ * operator new/delete, and we don't want internal operations of this class to
+ * get caught up in any inadvertent recursion.
+ *
+ * This class overloads operator new/delete to force use of the backing
+ * allocator for instance creation.
  */
 class AllocationStatsTracker {
 public:
@@ -72,6 +81,7 @@ public:
   using value_type = std::pair<const AllocationStatsKey, AllocationStats>;
   // PassThroughAllocator calls system allocation APIs directly; no new/delete.
   using allocator_type = StdAllocatorAdapter<value_type, PassThroughAllocator>;
+  using deleter_type = std::function<void(AllocationStatsTracker*)>;
   typedef std::unordered_map<AllocationStatsKey,
                              AllocationStats,
                              AllocationStatsKey::hash,
@@ -80,14 +90,14 @@ public:
       StatsMap;
 
   //
-  // dtor/dtor
+  // ctor/dtor
   //
-  AllocationStatsTracker() : m_stats(m_allocator) {}
+  AllocationStatsTracker() : m_stats(allocator_type(m_backing_allocator)) {}
+  ~AllocationStatsTracker() {}
 
   //
   // API
   //
-
   void allocate(const char* type_name,
                 const char* file_name,
                 int line,
@@ -105,15 +115,19 @@ public:
   const StatsMap& stats() const { return m_stats; }
   const AllocationStats& stats(const AllocationStatsKey& key) const;
 
+  void* operator new(size_t count);
+  void operator delete(void* pointer);
+
 private:
   static allocator_type::backing_allocator_type
-      m_allocator; // stateless, so static is safe.
+      m_backing_allocator; // stateless, so static is safe.
+
   StatsMap m_stats;
 };
 
 // Static init.
 AllocationStatsTracker::allocator_type::backing_allocator_type
-    AllocationStatsTracker::m_allocator;
+    AllocationStatsTracker::m_backing_allocator;
 
 /**
  * @brief Records stats about an allocation.
@@ -179,6 +193,25 @@ AllocationStatsTracker::stats(const AllocationStatsKey& key) const {
     return AllocationStats::null_stats;
 
   return stats->second;
+}
+
+/**
+ * @brief Overload operator new for this class to use the backing allocator.
+ *
+ * @param count Number of bytes to allocate.
+ * @return void* Pointer to the allocated memory.
+ */
+inline void* AllocationStatsTracker::operator new(size_t count) {
+  return m_backing_allocator.allocate(count, alignof(AllocationStatsTracker));
+}
+
+/**
+ * @brief Overload operator delete for this class to use the backing allocator.
+ *
+ * @param pointer Pointer to the memory to deallocate.
+ */
+inline void AllocationStatsTracker::operator delete(void* pointer) {
+  m_backing_allocator.deallocate(pointer);
 }
 
 } // namespace diagnostic

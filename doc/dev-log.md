@@ -372,3 +372,11 @@
 
 - This was a problem when using `std::unordered_map`, but not `std::map` for that test. Bah, it's counting allocations, but this behavior is obviously implementation-specific. Seems the `std::unordered_map` allocates in a less deterministic way. So, I worked around it by resetting my test counter to 0 before each add/remove to/from the map, then just used `CHECK_GT(allocate_called, 0)` to test.
 - After that all tests passed again.
+
+## 2018-11-25
+
+- Integrating the stats tracking code into the `DiagnosticAllocator`.
+- Decided I needed a way to allocate an `AllocationStatsTracker` instance without global new:
+  - This is because the consuming class (`AllocationTracker`) had forward declared it to keep it hidden.
+  - That meant using the `AllocationStatsTracker`'s own internal allocator (because I most likely can't trust any other). 
+  - Easy enough, just overloaded class-specific operator new/delete to redirect allocations to the backing allocator.

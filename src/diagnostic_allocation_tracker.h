@@ -9,12 +9,13 @@
 #include "types.h"
 
 // Library headers
+#include <memory>
 
 namespace allok8or {
 namespace diagnostic {
 
 class BlockHeader;
-class TypeStatsTracker;
+class AllocationStatsTracker;
 
 /**
  * Manages the linked list of headers and generates metrics from them.
@@ -26,8 +27,9 @@ public:
   AllocationTracker();
   ~AllocationTracker();
 
+  // No copies; share when appropriate.
   AllocationTracker(const AllocationTracker&) = delete; 
-  AllocationTracker& operator=(const AllocationTracker&); 
+  AllocationTracker& operator=(const AllocationTracker&) = delete; 
 
   bool add(BlockHeader* block);
   bool remove(BlockHeader* block);
@@ -47,7 +49,7 @@ private:
   llong_t m_num_blocks;
   llong_t m_num_bytes;
 
-  TypeStatsTracker* m_stats;
+  std::unique_ptr<AllocationStatsTracker> m_stats;
 };
 
 } // namespace diagnostic

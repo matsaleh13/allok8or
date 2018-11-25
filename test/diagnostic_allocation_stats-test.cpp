@@ -87,6 +87,25 @@ TEST_CASE("net_stats") {
 //
 // AllocationStatsTracker tests
 //
+TEST_CASE("create_tracker") {
+
+  SUBCASE("on_stack") {
+    diagnostic::AllocationStatsTracker tracker;
+
+    CHECK_EQ(0, tracker.stats().size());
+  }
+
+  SUBCASE("via_allocator") {
+    auto tracker = new diagnostic::AllocationStatsTracker();
+
+    CHECK_NE(nullptr, tracker);
+    CHECK_EQ(0, tracker->stats().size());
+
+    delete tracker;
+  }
+}
+
+
 TEST_CASE("track_allocations") {
   diagnostic::AllocationStatsTracker tracker;
 

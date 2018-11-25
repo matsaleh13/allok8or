@@ -55,7 +55,7 @@ public:
    *
    * @param allocator Allocator instance to be used as the backing allocator.
    */
-  StdAllocatorAdapter(Allocator<backing_allocator_type>& allocator) noexcept
+  explicit StdAllocatorAdapter(Allocator<backing_allocator_type>& allocator) noexcept
       : m_allocator(static_cast<backing_allocator_type&>(allocator)) {}
 
   template <typename U>

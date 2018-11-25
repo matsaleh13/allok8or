@@ -10,9 +10,11 @@
 // Project headers
 #include "align.h"
 #include "diagnostic_block_header.h"
+#include "diagnostic_allocation_stats.h"
 #include "logging.h"
 
 // Library headers
+#include <memory>
 
 namespace allok8or {
 namespace diagnostic {
@@ -29,7 +31,7 @@ AllocationTracker::AllocationTracker()
       m_tail(nullptr),
       m_num_blocks(0),
       m_num_bytes(0),
-      m_stats(nullptr) {}
+      m_stats(std::make_unique<AllocationStatsTracker>()) {}
 
 /**
  * AllocationTracker dtor
