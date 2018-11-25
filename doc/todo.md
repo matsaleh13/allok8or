@@ -18,3 +18,12 @@
 ## Tech Debt
 
 - More test cases for logging-test.
+- Linker error with logging-test on clang/OSX:
+
+  ```cmake
+  [build] Undefined symbols for architecture x86_64:
+  [build]   "std::__1::basic_ostream<char, std::__1::char_traits<char> >& std::__1::operator<<<char, std::__1::char_traits<char>, std::__1::allocator<char> >(std::__1::basic_ostream<char, std::__1::char_traits<char> >&, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> > const&)", referenced from:
+  [build]       doctest::String doctest::detail::stringifyBinaryExpr<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> >, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> > >(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> > const&, char const*, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> > const&) in logging-test.cpp.o
+  [build] ld: symbol(s) not found for architecture x86_64
+  [build] clang: error: linker command failed with exit code 1 (use -v to see invocation)
+  ```
