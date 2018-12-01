@@ -17,6 +17,8 @@ namespace diagnostic {
 class BlockHeader;
 class AllocationStatsTracker;
 
+typedef std::unique_ptr<AllocationStatsTracker> StatsPtr;
+
 /**
  * Manages the linked list of headers and generates metrics from them.
  *
@@ -28,8 +30,8 @@ public:
   ~AllocationTracker();
 
   // No copies; share when appropriate.
-  AllocationTracker(const AllocationTracker&) = delete; 
-  AllocationTracker& operator=(const AllocationTracker&) = delete; 
+  AllocationTracker(const AllocationTracker&) = delete;
+  AllocationTracker& operator=(const AllocationTracker&) = delete;
 
   bool add(BlockHeader* block);
   bool remove(BlockHeader* block);
@@ -49,7 +51,7 @@ private:
   llong_t m_num_blocks;
   llong_t m_num_bytes;
 
-  std::unique_ptr<AllocationStatsTracker> m_stats;
+  StatsPtr m_stats;
 };
 
 } // namespace diagnostic

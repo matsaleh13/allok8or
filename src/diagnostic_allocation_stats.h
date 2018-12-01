@@ -77,8 +77,8 @@ public:
   //
   // Types
   //
-
   using value_type = std::pair<const AllocationStatsKey, AllocationStats>;
+
   // PassThroughAllocator calls system allocation APIs directly; no new/delete.
   using allocator_type = StdAllocatorAdapter<value_type, PassThroughAllocator>;
   using deleter_type = std::function<void(AllocationStatsTracker*)>;

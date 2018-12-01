@@ -11,6 +11,7 @@
 #include "align.h"
 #include "diagnostic_allocation_stats.h"
 #include "diagnostic_block_header.h"
+#include "diagnostic_allocation_stats_reporter.h"
 #include "logging.h"
 
 // Library headers
@@ -169,7 +170,8 @@ void AllocationTracker::log_raw_blocks() {
  *
  */
 void AllocationTracker::log_block_summary() {
-  // TODO
+  
+  AllocationStatsReporter::report_stats(m_stats);
 }
 
 } // namespace diagnostic
