@@ -5,7 +5,7 @@
  */
 
 // My header
-#include "diagnostic_allocation_tracker.h"
+#include "diagnostic_tracking_pool.h"
 #include "diagnostic_block_header.h"
 
 // Project headers
@@ -83,12 +83,12 @@ const size_t AllocationTrackerFixture<T>::aligned_header_size =
 // AllocationTracker Tests
 //
 
-TEST_CASE_TEMPLATE_DEFINE("tracker", T, tracker_test_id) {
+TEST_CASE_TEMPLATE_DEFINE("pool", T, tracker_test_id) {
   using FixtureT = AllocationTrackerFixture<T>;
   FixtureT fixture;
 
   SUBCASE("add_block") {
-    diagnostic::AllocationTracker tracker;
+    diagnostic::AllocationTrackingPool pool;
 
     auto memory = fixture.create_buffer(FixtureT::aligned_user_data_size +
                                         FixtureT::aligned_header_size);
@@ -96,20 +96,20 @@ TEST_CASE_TEMPLATE_DEFINE("tracker", T, tracker_test_id) {
                                                   FixtureT::user_data_size,
                                                   FixtureT::user_data_alignment);
 
-    tracker.add(header);
+    pool.add(header);
 
     CHECK_EQ(nullptr, header->next());
     CHECK_EQ(nullptr, header->prev());
-    CHECK_EQ(true, tracker.in_list(header));
+    CHECK_EQ(true, pool.in_list(header));
 
-    CHECK_EQ(header, tracker.head());
-    CHECK_EQ(header, tracker.tail());
-    CHECK_EQ(1, tracker.num_blocks());
-    CHECK_EQ(FixtureT::user_data_size, tracker.num_bytes());
+    CHECK_EQ(header, pool.head());
+    CHECK_EQ(header, pool.tail());
+    CHECK_EQ(1, pool.num_blocks());
+    CHECK_EQ(FixtureT::user_data_size, pool.num_bytes());
   }
 
   SUBCASE("remove_block") {
-    diagnostic::AllocationTracker tracker;
+    diagnostic::AllocationTrackingPool tracker;
 
     auto memory = fixture.create_buffer(FixtureT::aligned_user_data_size +
                                         FixtureT::aligned_header_size);
@@ -131,7 +131,7 @@ TEST_CASE_TEMPLATE_DEFINE("tracker", T, tracker_test_id) {
   }
 
   SUBCASE("add_several_blocks") {
-    diagnostic::AllocationTracker tracker;
+    diagnostic::AllocationTrackingPool tracker;
 
     size_t num_blocks = 5;
     for (int ix = 0; ix < num_blocks; ++ix) {
@@ -172,7 +172,7 @@ TEST_CASE_TEMPLATE_DEFINE("tracker", T, tracker_test_id) {
   }
 
   SUBCASE("remove_middle_block") {
-    diagnostic::AllocationTracker tracker;
+    diagnostic::AllocationTrackingPool tracker;
 
     const size_t num_blocks = 5;
     std::vector<diagnostic::BlockHeader*> headers;
@@ -226,7 +226,7 @@ TEST_CASE_TEMPLATE_DEFINE("tracker", T, tracker_test_id) {
   }
 
   SUBCASE("remove_first_block") {
-    diagnostic::AllocationTracker tracker;
+    diagnostic::AllocationTrackingPool tracker;
 
     size_t num_blocks = 5;
     std::vector<diagnostic::BlockHeader*> headers;
@@ -239,7 +239,7 @@ TEST_CASE_TEMPLATE_DEFINE("tracker", T, tracker_test_id) {
                                           FixtureT::user_data_alignment);
       tracker.add(header);
 
-      headers.push_back(header); // Reverse order to the tracker list.
+      headers.push_back(header); // Reverse order to the pool list.
     }
 
     // Remove first block (last one added)
@@ -280,7 +280,7 @@ TEST_CASE_TEMPLATE_DEFINE("tracker", T, tracker_test_id) {
   }
 
   SUBCASE("remove_last_block") {
-    diagnostic::AllocationTracker tracker;
+    diagnostic::AllocationTrackingPool tracker;
 
     size_t num_blocks = 5;
     std::vector<diagnostic::BlockHeader*> headers;
@@ -293,7 +293,7 @@ TEST_CASE_TEMPLATE_DEFINE("tracker", T, tracker_test_id) {
                                           FixtureT::user_data_alignment);
       tracker.add(header);
 
-      headers.push_back(header); // Reverse order to the tracker list.
+      headers.push_back(header); // Reverse order to the pool list.
     }
 
     // Remove last block (first one added)

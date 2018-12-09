@@ -1,11 +1,11 @@
 /**
- * @file diagnostic_allocation_tracker.cpp
+ * @file diagnostic_tracking_pool.cpp
  * @brief Classes used for tracking allocations and deallocations.
  *
  */
 
 // My header
-#include "diagnostic_allocation_tracker.h"
+#include "diagnostic_tracking_pool.h"
 
 // Project headers
 #include "align.h"
@@ -21,13 +21,13 @@ namespace allok8or {
 namespace diagnostic {
 
 //
-// AllocationTracker Implementation
+// AllocationTrackingPool Implementation
 //
 
 /**
- * AllocationTracker ctor
+ * AllocationTrackingPool ctor
  */
-AllocationTracker::AllocationTracker()
+AllocationTrackingPool::AllocationTrackingPool()
     : m_head(nullptr),
       m_tail(nullptr),
       m_num_blocks(0),
@@ -35,13 +35,13 @@ AllocationTracker::AllocationTracker()
       m_stats(std::make_unique<AllocationStatsTracker>()) {}
 
 /**
- * AllocationTracker dtor
+ * AllocationTrackingPool dtor
  *
  * Logs an error if any are still in use at shutdown.
  */
-AllocationTracker::~AllocationTracker() {
+AllocationTrackingPool::~AllocationTrackingPool() {
   if (m_num_blocks || m_head || m_tail) {
-    LOG_ERROR("Detected memory leaks when deleting AllocationTracker "
+    LOG_ERROR("Detected memory leaks when deleting AllocationTrackingPool "
               "[%d]; leaking [%d] bytes.",
               m_num_blocks,
               m_num_bytes);
@@ -55,7 +55,7 @@ AllocationTracker::~AllocationTracker() {
  * @return true when block added.
  * @return false when failed to add block.
  */
-bool AllocationTracker::add(BlockHeader* block) {
+bool AllocationTrackingPool::add(BlockHeader* block) {
   assert(block);
   assert(!in_list(block));
 
@@ -93,7 +93,7 @@ bool AllocationTracker::add(BlockHeader* block) {
  * @return true when block removed.
  * @return false when failed to remove block.
  */
-bool AllocationTracker::remove(BlockHeader* block) {
+bool AllocationTrackingPool::remove(BlockHeader* block) {
   assert(block);
   assert(in_list(block));
   assert(m_head);
@@ -146,33 +146,10 @@ bool AllocationTracker::remove(BlockHeader* block) {
   return true;
 }
 
-bool AllocationTracker::in_list(BlockHeader* block) const {
+bool AllocationTrackingPool::in_list(BlockHeader* block) const {
   return (m_head == block || m_tail == block || block->next() || block->prev());
 }
 
-/**
- * @brief Logs blocks with no formatting or summary.
- *
- */
-void AllocationTracker::log_raw_blocks() {
-  auto block = m_head;
-  while (block) {
-    char buffer[256];
-    block->get_block_info_string(buffer);
-    LOG_INFO(buffer);
-
-    block = block->next();
-  }
-}
-
-/**
- * @brief Summarizes net allocations by type and/or call site.
- *
- */
-void AllocationTracker::log_block_summary() {
-  
-  AllocationStatsReporter::report_stats(m_stats);
-}
 
 } // namespace diagnostic
 } // namespace allok8or

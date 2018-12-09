@@ -8,7 +8,7 @@
 
 // Project headers
 #include "allocator.h"
-#include "diagnostic_allocation_tracker.h"
+#include "diagnostic_tracking_pool.h"
 #include "diagnostic_block_header.h"
 
 // Library headers
@@ -44,11 +44,11 @@ public:
   void* allocate(size_t size, size_t alignment) const;
   void deallocate(void* user_data) const;
 
-  const diagnostic::AllocationTracker& Tracker() const { return m_tracker; }
+  const diagnostic::AllocationTrackingPool& Tracker() const { return m_tracker; }
 
 private:
   TBackingAllocator& m_allocator;
-  mutable diagnostic::AllocationTracker
+  mutable diagnostic::AllocationTrackingPool
       m_tracker; // mutable required because all Allocator<T>-derived classes
                  // must have const API.
 };

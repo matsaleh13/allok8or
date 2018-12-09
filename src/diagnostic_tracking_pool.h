@@ -1,5 +1,5 @@
 /**
- * @file diagnostic_allocation_tracker.h
+ * @file diagnostic_tracking_pool.h
  * @brief Classes used for tracking allocations and deallocations.
  *
  */
@@ -21,17 +21,19 @@ typedef std::unique_ptr<AllocationStatsTracker> StatsPtr;
 
 /**
  * Manages the linked list of headers and generates metrics from them.
+ * 
+ * TODO: RENAME TO DiagnosticBlockPool (or similar)
  *
  * NOTE: Blocks are added only to the head of the doubly-linked list.
  */
-class AllocationTracker {
+class AllocationTrackingPool {
 public:
-  AllocationTracker();
-  ~AllocationTracker();
+  AllocationTrackingPool();
+  ~AllocationTrackingPool();
 
   // No copies; share when appropriate.
-  AllocationTracker(const AllocationTracker&) = delete;
-  AllocationTracker& operator=(const AllocationTracker&) = delete;
+  AllocationTrackingPool(const AllocationTrackingPool&) = delete;
+  AllocationTrackingPool& operator=(const AllocationTrackingPool&) = delete;
 
   bool add(BlockHeader* block);
   bool remove(BlockHeader* block);
@@ -42,8 +44,7 @@ public:
   llong_t num_blocks() const { return m_num_blocks; }
   llong_t num_bytes() const { return m_num_bytes; }
 
-  void log_raw_blocks();
-  void log_block_summary();
+  const AllocationStatsTracker& tracker() const { return *m_stats; }
 
 private:
   BlockHeader* m_head;
