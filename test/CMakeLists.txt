@@ -46,9 +46,9 @@ add_executable(diagnostic_allocation_stats-test diagnostic_allocation_stats-test
 add_test(NAME diagnostic_allocation_stats-test COMMAND diagnostic_allocation_stats-test)
 target_link_libraries(diagnostic_allocation_stats-test allok8or-core)
 
-# add_executable(diagnostic_new-test diagnostic_new-test.cpp $<TARGET_OBJECTS:allok8or-test>)
-# add_test(NAME diagnostic_new-test COMMAND diagnostic_new-test)
-# target_link_libraries(diagnostic_new-test allok8or-core)
+add_executable(diagnostic_allocation_stats_reporter-test diagnostic_allocation_stats_reporter-test.cpp $<TARGET_OBJECTS:allok8or-test>)
+add_test(NAME diagnostic_allocation_stats_reporter-test COMMAND diagnostic_allocation_stats_reporter-test)
+target_link_libraries(diagnostic_allocation_stats_reporter-test allok8or-core)
 
 add_executable(global_allocator-test global_allocator-test.cpp $<TARGET_OBJECTS:allok8or-test>)
 add_test(NAME global_allocator-test COMMAND global_allocator-test)

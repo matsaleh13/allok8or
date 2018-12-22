@@ -380,3 +380,49 @@
   - This is because the consuming class (`AllocationTracker`) had forward declared it to keep it hidden.
   - That meant using the `AllocationStatsTracker`'s own internal allocator (because I most likely can't trust any other). 
   - Easy enough, just overloaded class-specific operator new/delete to redirect allocations to the backing allocator.
+
+## 2018-12-08
+
+- Something broke with my cmake extensions in VS Code. When I configure the project, I now get (when using the MSVS 2017 kit):
+
+  ```cmake
+  [driver] Removing  e:/Dev/GitHub/allok8or/build/CMakeCache.txt
+  [driver] Removing  e:\Dev\GitHub\allok8or\build\CMakeFiles
+  [cms-client] Configuring using the "Ninja" CMake generator
+  [cmake] The C compiler identification is Clang 6.0.1
+  [cmake] CMake Error at C:/Program Files/CMake/share/cmake-3.12/Modules/CMakeDetermineCompilerId.cmake:793 (message):
+  [cmake]   The Clang compiler tool
+  [cmake] 
+  [cmake]     "C:/Program Files/LLVM/bin/clang.exe"
+  [cmake] 
+  [cmake]   targets the MSVC ABI but has a GNU-like command-line interface.  This is
+  [cmake]   not supported.  Use 'clang-cl' instead, e.g.  by setting 'CC=clang-cl' in
+  [cmake]   the environment.  Furthermore, use the MSVC command-line environment.
+  [cmake] Call Stack (most recent call first):
+  [cmake]   C:/Program Files/CMake/share/cmake-3.12/Modules/CMakeDetermineCCompiler.cmake:113 (CMAKE_DIAGNOSE_UNSUPPORTED_CLANG)
+  [cmake]   CMakeLists.txt:2 (project)
+  [cmake] 
+  [cmake] 
+  [cmake] CMake Error: CMAKE_CXX_COMPILER not set, after EnableLanguage
+  [cmake] Configuring incomplete, errors occurred!
+  [cmake] See also "e:/Dev/GitHub/allok8or/build/CMakeFiles/CMakeOutput.log".
+  [cms-driver] Error during CMake configure: [cmake-server] Configuration failed.  
+  ```
+
+  - Nothing I tried (reconfig clean, etc) fixed it.
+  - Finally had to install VS Code insider edition so I could get the new feature of installing specific extension version. This allowed me to downgrade the `vector-of-bool.cmake-tools@1.1.3` extension to `vector-of-bool.cmake-tools@1.1.2`.
+  - After restarting (and some misc hiccups), I was able to successfully configure the project using cmake-tools in the insider version of vscode.
+  - Then the extension was auto-updated back to 1.1.3, and when I reconfigured again, the problem returned.
+  - I reproed this twice with the same results.
+  - FWIW, when I configure using 1.1.2 in the VSCode insiders build, then open the workspace in VSCode, configure works (until I reconfigure clean again).
+  - I then copied the v 1.1.2 folder from .vscode-insiders\extensions into .vscode\extensions, restarted VSCode, did a reconfigure clean, and that fixed it.
+  - Also note that with v1.1.3, I lost the kit `Clang 6.0.1 for MSVC with Visual Studio Community 2017 (amd64)`.
+
+## 2018-12-09
+
+- Started unit tests for the `diagnostic_allocation_stats_reporter.h`. Still WIP.
+
+## 2018-12-22
+
+- Had weirdness with my development hard drive after a Windows update. Drive totally not recognized. Took a few reboots, but after that, everything seemed fine again. Ran diags and repairs, nothing broken, nothing lost. Still thank God I had backups and GitHub! :)
+- Committed the above tests from 2018-12-09.
