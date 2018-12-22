@@ -426,3 +426,4 @@
 
 - Had weirdness with my development hard drive after a Windows update. Drive totally not recognized. Took a few reboots, but after that, everything seemed fine again. Ran diags and repairs, nothing broken, nothing lost. Still thank God I had backups and GitHub! :)
 - Committed the above tests from 2018-12-09.
+- Fleshed out the rest of the tests for the `AllocationStatsCsvReporter` implementation class.

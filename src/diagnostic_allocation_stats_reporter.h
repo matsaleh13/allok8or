@@ -51,6 +51,12 @@ public:
                               std::ostream& output) const;
 };
 
+/**
+ * @brief Dump stats to output stream.
+ * 
+ * @param stats An AllocationTracker::StatsMap contiaining allocation stats.
+ * @param output A std::ostream to collect the output.
+ */
 inline void AllocationStatsCsvReporter::report_stats(
     const AllocationStatsTracker::StatsMap& stats, std::ostream& output) const {
       // Header row (column names)
@@ -58,7 +64,7 @@ inline void AllocationStatsCsvReporter::report_stats(
              << "Allocs" << "," << "Alloc Bytes" << ","
              << "Deallocs" << "," << "Dealloc Bytes" << ","
              << "Net Allocs" << "," 
-             << "Net Alloc Bytes" << std::endl;
+             << "Net Alloc Bytes" << "\n";
              
   for (const auto& stat_pair : stats) {
     output << stat_pair.first.type_name << ","
@@ -69,11 +75,10 @@ inline void AllocationStatsCsvReporter::report_stats(
            << stat_pair.second.deallocations << ","
            << stat_pair.second.bytes_deallocated << ","
            << stat_pair.second.net_allocations() << ","
-           << stat_pair.second.net_bytes();
+           << stat_pair.second.net_bytes() << "\n";
   }
 
-  // Flush
-  output << std::endl;
+  output << std::flush;
 }
 
 } // namespace diagnostic
