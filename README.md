@@ -10,12 +10,11 @@ A collection of memory allocators for game development and general purpose appli
 - Working:
   - PagingAllocator
   - PassThroughAllocator
-  - (i.e. the easy stuff)
-- WIP:
   - DiagnosticAllocator
   - StdAllocatorAdapter
-- Nothing Yet:
+- WIP:
   - BlockAllocator (aka pool allocator)
+- Nothing Yet:
   - LineaarAllocator
   - StackAllocator (maybe)
   - FreeListAllocator (maybe)
