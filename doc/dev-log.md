@@ -427,3 +427,21 @@
 - Had weirdness with my development hard drive after a Windows update. Drive totally not recognized. Took a few reboots, but after that, everything seemed fine again. Ran diags and repairs, nothing broken, nothing lost. Still thank God I had backups and GitHub! :)
 - Committed the above tests from 2018-12-09.
 - Fleshed out the rest of the tests for the `AllocationStatsCsvReporter` implementation class.
+- Calling this done for now (TODO: add `AllocationStatsTextReporter`)
+
+## 2018-12-23
+
+- Starting on block allocator implementation.
+- Design issue:
+  - current Allocator (base/interface) class allocates memory of any given size passed into the `allocate` method.
+  - Block allocator, by definition, allocates only a specific size block.
+  - It seems that these two APIs are incompatible. I.e. a BlockAllocator cannot be allowed to allocate just any size block.
+  - Furthermore, what we currently call the `PageAllocator` is actually a fixed-size block allocator that is used to allocate the backing memory "pages" used by other allocators. We already know that this allocator doesn't satisfy the existing `Allocator` interface.
+- Do we have two types of allocator interfaces?
+  - Fixed-size (i.e. block).
+  - Variable-size (i.e. per allocate call).
+  - Conceptually, a block allocator could delegate to a non-block allocator
+- Reviewing other allocator examples that deal with this:
+  - The approach taken by [Jonathan Mueller's memory library](https://github.com/foonathan/memory) is very precise, using separate "concepts" for fixed and variable allocators. It uses fairly sophisticated traits classes and other template metaprogramming techniques to enforce the desired semantics. Downside is that that code is kind of hard to read, and requires jumping around in a lot of files. My gut tells me that this uses the "correct" (and probably most flexible) approach at the cost of some usability.
+  - The article by Tiago Costa, [C++: Custom memory allocation](https://www.gamedev.net/articles/programming/general-and-gameplay-programming/c-custom-memory-allocation-r3010/), takes a simpler approach, if less elegant. There is a single abstract base `Allocator` class, which exposes allocation size as an argument to the `allocate` method. It also implements fixed block `PoolAllocator` that derives from the `Allocator` and does implement the `allocate` method having the size parameter. This method simply asserts that the size argument equals the fixed size expected by the allocator. Very simple, if clumsy and kind of hacky. Yet, it's also very easy to understand and use.
+  - Of course, I want the best of both worlds. Because, like Mueller, I'm using a template-based approach, I don't really need an abstract base class. Maybe I need to create a traits thingy too? Ideally, it would allow an allocator class to declare an `allocate` method with or without a size parameter. But, I know next to nothing about implementing traits classes, so I'm going to have to study on it for a bit.  
