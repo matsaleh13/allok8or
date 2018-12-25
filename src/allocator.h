@@ -13,9 +13,9 @@ namespace allok8or {
 /**
  * @brief Non-abstract interface class for allocators.
  *
- * @tparam TImplementation Implementation class
+ * @tparam TImpl Implementation class
  */
-template <typename TImplementation>
+template <typename TImpl>
 class Allocator {
 public:
   constexpr void* allocate(size_t size) const { return impl().allocate(size); }
@@ -30,34 +30,34 @@ protected:
   constexpr Allocator() {}  // Don't create the base class.
 
 private:
-  constexpr TImplementation& impl() {
-    return *static_cast<TImplementation*>(this);
+  constexpr TImpl& impl() {
+    return *static_cast<TImpl*>(this);
   }
 
-  constexpr const TImplementation& impl() const {
-    return *static_cast<const TImplementation*>(this);
+  constexpr const TImpl& impl() const {
+    return *static_cast<const TImpl*>(this);
   }
 
-template <typename F_TImplementation>
-  friend constexpr bool operator==(const Allocator<F_TImplementation>& lhs,
-                          const Allocator<F_TImplementation>& rhs);
+template <typename F_TImpl>
+  friend constexpr bool operator==(const Allocator<F_TImpl>& lhs,
+                          const Allocator<F_TImpl>& rhs);
 
-template <typename F_TImplementation>
-  friend constexpr bool operator!=(const Allocator<F_TImplementation>& lhs,
-                          const Allocator<F_TImplementation>& rhs);
+template <typename F_TImpl>
+  friend constexpr bool operator!=(const Allocator<F_TImpl>& lhs,
+                          const Allocator<F_TImpl>& rhs);
 };
 
-template <typename TImplementation>
+template <typename TImpl>
 inline
-constexpr bool operator==(const Allocator<TImplementation>& lhs,
-                          const Allocator<TImplementation>& rhs) {
+constexpr bool operator==(const Allocator<TImpl>& lhs,
+                          const Allocator<TImpl>& rhs) {
   return lhs.impl() == rhs.impl();
 }
 
-template <typename TImplementation>
+template <typename TImpl>
 inline
-constexpr bool operator!=(const Allocator<TImplementation>& lhs,
-                          const Allocator<TImplementation>& rhs) {
+constexpr bool operator!=(const Allocator<TImpl>& lhs,
+                          const Allocator<TImpl>& rhs) {
   return lhs.impl() != rhs.impl();
 }
 

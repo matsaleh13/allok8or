@@ -445,3 +445,53 @@
   - The approach taken by [Jonathan Mueller's memory library](https://github.com/foonathan/memory) is very precise, using separate "concepts" for fixed and variable allocators. It uses fairly sophisticated traits classes and other template metaprogramming techniques to enforce the desired semantics. Downside is that that code is kind of hard to read, and requires jumping around in a lot of files. My gut tells me that this uses the "correct" (and probably most flexible) approach at the cost of some usability.
   - The article by Tiago Costa, [C++: Custom memory allocation](https://www.gamedev.net/articles/programming/general-and-gameplay-programming/c-custom-memory-allocation-r3010/), takes a simpler approach, if less elegant. There is a single abstract base `Allocator` class, which exposes allocation size as an argument to the `allocate` method. It also implements fixed block `PoolAllocator` that derives from the `Allocator` and does implement the `allocate` method having the size parameter. This method simply asserts that the size argument equals the fixed size expected by the allocator. Very simple, if clumsy and kind of hacky. Yet, it's also very easy to understand and use.
   - Of course, I want the best of both worlds. Because, like Mueller, I'm using a template-based approach, I don't really need an abstract base class. Maybe I need to create a traits thingy too? Ideally, it would allow an allocator class to declare an `allocate` method with or without a size parameter. But, I know next to nothing about implementing traits classes, so I'm going to have to study on it for a bit.  
+
+## 2018-12-24
+
+- Did some research/learning on traits. Not sure I'm done yet, but some highlights:
+  - [An Introduction to C++ Traits](https://accu.org/index.php/journals/442)
+  - [C++ Tutorial - Traits : A Template Specialization - 2018](https://www.bogotobogo.com/cplusplus/template_specialization_traits.php)
+  - [Extensible Templates: Via Inheritance or Traits?](http://www.gotw.ca/publications/mxc++-item-4.htm)
+  - [What is the difference between a trait and a policy?](https://stackoverflow.com/questions/14718055/what-is-the-difference-between-a-trait-and-a-policy)
+  - [Traits: a new and useful template technique](http://www.cantrip.org/traits.html)
+  - Also CppCast (podcast) [Episode 59: foonathan/memory and standardese with Jonathan Müller](https://channel9.msdn.com/Shows/CppCast/Episode-59-foonathanmemory-and-standardese-with-Jonathan-Mller) (starts around 16:36)
+- With that in mind, I'm considering some changes:
+  - Replacing the `Allocator` templatized base class (CRTP) with two traits classes, one for fixed-size allocation (i.e. `allocate` has no params) and the other for more generic variable-size allocations (i.e. `allocate` has a size param).
+  - Then, whenever I pass an allocator class as a backing allocator, I also pass in the appropriate traits class that knows how to call it.
+  - I think...
+- Some other thoughts:
+  - Primary use cases for fixed-size allocator:
+    - std:: containers.
+    - Code that allocates lots of the same types that do not themselves allocate data members.
+    - Page allocators (i.e. providing backing memory for other allocators).
+  - Primary use cases for variable-sized allocator:
+    - As a interface for a general purpose or "default" allocator (i.e. handle all/most allocations). E.g. free list allocator.
+    - As an interface for allocating a bounded set of types, each of a fixed size (i.e. wrapping multiple fixed-size allocators).
+    - Used anywhere locality of memory is more important than fixed allocation size. E.g. for classes that themselves allocate members.
+
+## 2018-12-25
+
+- Had to revert VSCode back to 1.29 (upgraded yesterday):
+  - CMake Tools started going batshit, reporting some kind of "unhandled promise rejection" in the console. After that, trying to reconfigure the CMake project produced a message box with "Configuring project: Saving open files".
+  - I didn't have time to mess with that this time, so I reverted VSCode instead.
+  - Reverting fixe it, w00t.
+- Continuing with the block vs. variable size allocator API question:
+  - Considering: How far should I pursue the "traits" approach?
+    - The goal state is to have an "adapter" thingy that I can call the same way regardless of whether the backing allocator is fixed size or variable sized.
+  - Resolved: We do need separate APIs for block and variable. The semantics are different, so of course the interfaces should be also.
+  - Resolved: Cannot use common base class (abstract or not) because the interfaces (and use cases) are mutually exclusive.
+  - Resolved: Names of the two types of abstractions/concepts are:
+    - `Allocator`: An abstraction responsible for allocating blocks of memory for exclusive use by client code. Each allocation call specifies the size and alignment to use.
+    - `FixedSizeAllocator`: An abstraction responsible for allocating blocks of memory of uniform size and alignment for exclusive use by client code. Not a specialization of `Allocator`, but may be implemented in terms of `Allocator`.
+  - Resolved: I won't follow the template metaprogramming (e.g. traits) approach to the extents demonstrated in [`foonathan/memory`](https://github.com/foonathan/memory). While immensely flexible and theoretically impressive, I find it hard to use and read. Also, I don't have the time/interest to take it that far, and Mr. Mueller has done a fine job of exploring that space. Finally, my goal with this project is to learn about allocators and make something potentially useful, not to explore the many nuances of C++ template metaprogramming.
+- Allocator API requirements:
+  - FixedSizeAllocator:
+    - block size: Template and/or ctor parameter; static member.
+    - block alignment: Template and/or ctor parameter; static member.
+    - allocate/deallocate (no block size or align params): methods.
+    - allocate_array/deallocate_array (no block size or align params): methods.
+  - VariableSizeAllocator:
+    - allocate/deallocate (with block size and align params): methods.
+    - allocate_array/deallocate_array (with block size and align params): methods.
+
+- Created a [glossary](./glossary.md) to keep track of some of the more nuanced concepts I'm starting to run into here.
