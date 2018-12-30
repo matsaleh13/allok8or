@@ -82,7 +82,7 @@ bool check_line_values(const std::string& text,
   char pat[128] = {'\0'};
   std::snprintf(pat,
                 sizeof(pat),
-                "^.*%lld,%lld,%lld,%lld,%lld,%lld.*$",
+                "%lld,%lld,%lld,%lld,%lld,%lld",
                 stats.allocations,
                 stats.bytes_allocated,
                 stats.deallocations,

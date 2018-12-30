@@ -495,3 +495,7 @@
     - allocate_array/deallocate_array (with block size and align params): methods.
 
 - Created a [glossary](./glossary.md) to keep track of some of the more nuanced concepts I'm starting to run into here.
+
+## 2018-12-30
+
+- Fixed test failure on MacOS where regex pattern surrounded by line start (`^`) and end (`$`) patterns failed to match CSV output string. This didn't happen on Windows. Gah.
