@@ -5,7 +5,7 @@
  */
 
 // My header
-#include "type_name_helper.h"
+#include "diagnostic/type_name_helper.h"
 
 // Project headers
 

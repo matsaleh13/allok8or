@@ -499,3 +499,5 @@
 ## 2018-12-30
 
 - Fixed test failure on MacOS where regex pattern surrounded by line start (`^`) and end (`$`) patterns failed to match CSV output string. This didn't happen on Windows. Gah.
+- Decided I was tired of all the `diagnostic_*` files cluttering things up, so I put them into a `diagnostic` subfolder. Simply added a couple more glob patterns to crawl the `diagnostic` subfolder and add the files to the CMake `headers` and `cppfiles` variables. All code builds and tests pass.
+

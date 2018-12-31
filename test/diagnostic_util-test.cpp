@@ -5,7 +5,7 @@
  */
 
 // My header
-#include "diagnostic_util.h"
+#include "diagnostic/util.h"
 
 // Project headers
 

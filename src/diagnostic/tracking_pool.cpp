@@ -5,14 +5,14 @@
  */
 
 // My header
-#include "diagnostic_tracking_pool.h"
+#include "tracking_pool.h"
 
 // Project headers
-#include "align.h"
-#include "diagnostic_allocation_stats.h"
-#include "diagnostic_block_header.h"
-#include "diagnostic_allocation_stats_reporter.h"
-#include "logging.h"
+#include "../align.h"
+#include "allocation_stats.h"
+#include "block_header.h"
+#include "allocation_stats_reporter.h"
+#include "../logging.h"
 
 // Library headers
 #include <memory>

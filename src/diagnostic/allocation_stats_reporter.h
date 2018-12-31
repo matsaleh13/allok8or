@@ -6,7 +6,7 @@
 #pragma once
 
 // Project headers.
-#include "diagnostic_allocation_stats.h"
+#include "allocation_stats.h"
 
 // Library headers.
 #include <iostream>

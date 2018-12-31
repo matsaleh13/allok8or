@@ -5,10 +5,10 @@
  */
 
 // My header.
-#include "diagnostic_allocation_stats_reporter.h"
+#include "diagnostic/allocation_stats_reporter.h"
 
 // Project headers.
-#include "diagnostic_allocation_stats.h"
+#include "diagnostic/allocation_stats.h"
 
 // Library headers.
 #include "doctest.h"

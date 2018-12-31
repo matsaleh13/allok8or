@@ -5,7 +5,7 @@
  */
 
 // My header.
-#include "diagnostic_allocation_stats.h"
+#include "diagnostic/allocation_stats.h"
 
 // Project headers.
 

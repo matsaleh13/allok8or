@@ -6,7 +6,7 @@
 #pragma once
 
 // Project headers
-#include "types.h"
+#include "../types.h"
 
 // Library headers
 #include <memory>

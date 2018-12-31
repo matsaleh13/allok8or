@@ -5,8 +5,8 @@
  */
 
 // My header
-#include "diagnostic_tracking_pool.h"
-#include "diagnostic_block_header.h"
+#include "diagnostic/tracking_pool.h"
+#include "diagnostic/block_header.h"
 
 // Project headers
 #include "align.h"

@@ -7,10 +7,10 @@
  */
 
 // My header
-#include "diagnostic_block_header.h"
+#include "block_header.h"
 
 // Project headers
-#include "align.h"
+#include "../align.h"
 
 // Library headers
 
