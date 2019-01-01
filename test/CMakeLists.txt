@@ -42,6 +42,10 @@ add_executable(diagnostic_block_header-test diagnostic_block_header-test.cpp $<T
 add_test(NAME diagnostic_block_header-test COMMAND diagnostic_block_header-test)
 target_link_libraries(diagnostic_block_header-test allok8or-core)
 
+add_executable(fixed_block_header-test fixed_block_header-test.cpp $<TARGET_OBJECTS:allok8or-test>)
+add_test(NAME fixed_block_header-test COMMAND fixed_block_header-test)
+target_link_libraries(fixed_block_header-test allok8or-core)
+
 add_executable(diagnostic_allocation_stats-test diagnostic_allocation_stats-test.cpp $<TARGET_OBJECTS:allok8or-test>)
 add_test(NAME diagnostic_allocation_stats-test COMMAND diagnostic_allocation_stats-test)
 target_link_libraries(diagnostic_allocation_stats-test allok8or-core)
