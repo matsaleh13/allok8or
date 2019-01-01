@@ -501,3 +501,12 @@
 - Fixed test failure on MacOS where regex pattern surrounded by line start (`^`) and end (`$`) patterns failed to match CSV output string. This didn't happen on Windows. Gah.
 - Decided I was tired of all the `diagnostic_*` files cluttering things up, so I put them into a `diagnostic` subfolder. Simply added a couple more glob patterns to crawl the `diagnostic` subfolder and add the files to the CMake `headers` and `cppfiles` variables. All code builds and tests pass.
 
+## 2019-01-01
+
+- Happy New Year!
+- Changed FixedSizeAllocator CRTP template class to take only an implementation class template parameter, removing the TSize and TAlign params. These it will now get (i.e. require) from any implementation class TImpl. This was to avoid having to pass TSize and TAlign in to both the implementation class params and the CRTP base class params.
+- Started implementing BlockAllocator class, which implements the FixedSizeAllocator CRTP interface.
+- Started implementing FixedBlockHeader and FixedBlockPool classes for managing fixed size blocks.
+- Much of the above was lifted nearly directly from the diagnostic::BlockHeader and diagnostic::AllocationTrackingPool classes.
+
+-
