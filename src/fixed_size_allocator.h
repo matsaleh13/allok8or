@@ -18,13 +18,11 @@ namespace allok8or {
  * @tparam TSize Size of the blocks this allocator creates.
  * @tparam TAlign Memory alignment of the blocks this allocator creates.
  */
-template <typename TImpl,
-          size_t TSize,
-          size_t TAlign = alignof(std::max_align_t)>
+template <typename TImpl>
 class FixedSizeAllocator {
 public:
-  using const static size_t block_size = TSize;
-  using const static size_t alignment = TAlign;
+  const static size_t block_size = TImpl::TSize;
+  const static size_t alignment = TImpl::TAlign;
 
   constexpr void* allocate() const { return impl().allocate(); }
   constexpr void deallocate(void* data) const { impl().deallocate(data); }
@@ -39,28 +37,28 @@ private:
     return *static_cast<const TImpl*>(this);
   }
 
-  template <typename F_TImpl, size_t F_TSize, size_t F_TAlign>
+  template <typename F_TImpl>
   friend constexpr bool
-  operator==(const FixedSizeAllocator<F_TImpl, F_TSize, F_TAlign>& lhs,
-             const FixedSizeAllocator<F_TImpl, F_TSize, F_TAlign>& rhs);
+  operator==(const FixedSizeAllocator<F_TImpl>& lhs,
+             const FixedSizeAllocator<F_TImpl>& rhs);
 
-  template <typename F_TImpl, size_t F_TSize, size_t F_TAlign>
+  template <typename F_TImpl>
   friend constexpr bool
-  operator!=(const FixedSizeAllocator<F_TImpl, F_TSize, F_TAlign>& lhs,
-             const FixedSizeAllocator<F_TImpl, F_TSize, F_TAlign>& rhs);
+  operator!=(const FixedSizeAllocator<F_TImpl>& lhs,
+             const FixedSizeAllocator<F_TImpl>& rhs);
 };
 
-template <typename F_TImpl, size_t F_TSize, size_t F_TAlign>
+template <typename F_TImpl>
 inline constexpr bool
-operator==(const FixedSizeAllocator<F_TImpl, F_TSize, F_TAlign>& lhs,
-           const FixedSizeAllocator<F_TImpl, F_TSize, F_TAlign>& rhs) {
+operator==(const FixedSizeAllocator<F_TImpl>& lhs,
+           const FixedSizeAllocator<F_TImpl>& rhs) {
   return lhs.impl() == rhs.impl();
 }
 
-template <typename F_TImpl, size_t F_TSize, size_t F_TAlign>
+template <typename F_TImpl>
 inline constexpr bool
-operator!=(const FixedSizeAllocator<F_TImpl, F_TSize, F_TAlign>& lhs,
-           const FixedSizeAllocator<F_TImpl, F_TSize, F_TAlign>& rhs) {
+operator!=(const FixedSizeAllocator<F_TImpl>& lhs,
+           const FixedSizeAllocator<F_TImpl>& rhs) {
   return lhs.impl() != rhs.impl();
 }
 

@@ -509,4 +509,17 @@
 - Started implementing FixedBlockHeader and FixedBlockPool classes for managing fixed size blocks.
 - Much of the above was lifted nearly directly from the diagnostic::BlockHeader and diagnostic::AllocationTrackingPool classes.
 
--
+## 2019-01-02
+
+- More thinking about the BlockAllocator design:
+  - It has a FixedBlockPool member, which manages free blocks, each of which has a FixedBlockHeader.
+  - It is backed by a PageAllocator (via Template param TPageAllocator). This will create large pages of contiguous memory which the BlockAllocator will carve up into many individual blocks of TSize.
+  - In addition to the pool, the BlockAllocator will have to manage one or more pages that it gets from the PageAllocator. 
+- It's possible that, since pages are pretty much just larger blocks, we can use another FixedBlockPool to manage them. However, the semantics might be different:  
+  - For blocks, the pool will manage only "free" blocks, removing them when giving them over to calling code.
+  - For pages, the "pool" (whatever we call it) will manage only "used" pages that are currently backing one or more blocks.
+  - Generally speaking, consumers of allocations manage the allocated memory, so the consumer of the BlockAllocator would manage allocated blocks, while the BlockAllocator - a consumer of the PageAllocator - would manage allocated pages.
+  - This implies that:  
+  - Managers of free blocks/pages can easily track them using linked list semantics and data members injected into the block itself, because no other code is using that block (it's free). Once "allocated" and handed off to the consumer, the block contents are wiped (or ignored) and the consumer can do whatever it wants with the entire block.
+  - In contrast, managers of "used" blocks/pages cannot intrude upon the part of the block/page that the consumer thinks it owns. This means that any linked list pointers or other metadata used for tracking used blocks/pages must be stored in a separate "header" region at the front of the block/page, while returning to the consumer a pointer to the remainder of the block.
+  - So, maybe we can use the same kind of pool, but a different block header type for the two use cases?

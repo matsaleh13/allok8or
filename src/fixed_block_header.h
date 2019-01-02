@@ -31,7 +31,7 @@ namespace allok8or {
 template <size_t TSize, size_t TAlign>
 class FixedBlockHeader {
   // Private; to be used only by the static factory method.
-  FixedBlockHeader();
+  constexpr FixedBlockHeader();
 
 public:
   const static size_t user_data_size;
@@ -69,13 +69,13 @@ const size_t FixedBlockHeader<TSize, TAlign>::user_data_alignment = TAlign;
  * @brief Ctor for internal use only.
  */
 template <size_t TSize, size_t TAlign>
-inline FixedBlockHeader<TSize, TAlign>::FixedBlockHeader()
+inline constexpr FixedBlockHeader<TSize, TAlign>::FixedBlockHeader()
     : m_next(nullptr),
       m_prev(nullptr),
       m_user_data(reinterpret_cast<void*>(
           reinterpret_cast<uintptr_t>(this) +
-          align::get_aligned_size(sizeof(FixedBlockHeader),
-                                  alignof(FixedBlockHeader)))) {}
+          align::get_aligned_size(sizeof(FixedBlockHeader<TSize, TAlign>),
+                                  alignof(FixedBlockHeader<TSize, TAlign>)))) {}
 
 template <size_t TSize, size_t TAlign>
 inline constexpr FixedBlockHeader<TSize, TAlign>*
@@ -101,10 +101,10 @@ FixedBlockHeader<TSize, TAlign>::create(void* block_start) {
 template <size_t TSize, size_t TAlign>
 inline constexpr FixedBlockHeader<TSize, TAlign>*
 FixedBlockHeader<TSize, TAlign>::get_header(const void* user_data) {
-  return reinterpret_cast<FixedBlockHeader*>(
+  return reinterpret_cast<FixedBlockHeader<TSize, TAlign>*>(
       reinterpret_cast<uintptr_t>(user_data) -
-      align::get_aligned_size(sizeof(FixedBlockHeader),
-                              alignof(FixedBlockHeader)));
+      align::get_aligned_size(sizeof(FixedBlockHeader<TSize, TAlign>),
+                              alignof(FixedBlockHeader<TSize, TAlign>)));
 }
 
 } // namespace allok8or
